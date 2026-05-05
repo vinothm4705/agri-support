@@ -1,0 +1,974 @@
+<!DOCTYPE html>
+<html lang="{{ session.get('lang', 'en') }}">
+
+<head>
+    <title>{{ t.chatbot_title }}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/static/style.css?v=2.0">
+    <link rel="stylesheet" href="/static/vendor/fontawesome/css/all.min.css">
+    <link rel="manifest" href="/static/manifest.json">
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/static/service-worker.js')
+                    .then(reg => console.log('SW registered!', reg.scope))
+                    .catch(err => console.log('SW failed:', err));
+            });
+        }
+    </script>
+    <style>
+        /* === LOCKED VIEWPORT LAYOUT === */
+        body {
+            overflow: hidden !important;
+            height: 100vh !important;
+            height: 100dvh !important;
+            /* Dynamic viewport height for mobile */
+            padding-bottom: 0 !important;
+            margin: 0 !important;
+            background: var(--bg-deep) !important;
+        }
+
+        .chatbot-layout {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            z-index: 50;
+        }
+
+        /* Compact Header - matches system design (centered like weather/about) */
+        .chat-header {
+            background: var(--accent-primary);
+            padding: 25px 20px 18px;
+            text-align: center;
+            flex-shrink: 0;
+            z-index: 100;
+            box-shadow: var(--shadow-md);
+            border-radius: 0 0 20px 20px;
+            color: white;
+        }
+
+        .chat-header i.header-icon {
+            font-size: 28px;
+            color: rgba(255, 255, 255, 0.9);
+            margin-bottom: 6px;
+        }
+
+        .chat-header h1 {
+            color: white;
+            font-size: 22px;
+            margin: 0;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+        }
+
+        .chat-header p {
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 13px;
+            margin: 6px 0 12px;
+        }
+
+        .chat-header-nav {
+            display: inline-flex;
+            gap: 0;
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border-radius: 50px;
+            padding: 4px 6px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .chat-header-nav .nav-link {
+            font-size: 13px;
+            padding: 5px 14px;
+            color: rgba(255, 255, 255, 0.85);
+            text-decoration: none;
+            border-radius: 20px;
+            transition: all 0.2s;
+            font-weight: 500;
+        }
+
+        .chat-header-nav .nav-link:hover,
+        .chat-header-nav .nav-link.active {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+        }
+
+        /* Chat Area - fills remaining space */
+        .chat-container {
+            max-width: 800px;
+            width: 100%;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            flex-grow: 1;
+            min-height: 0;
+            /* Critical for flexbox scroll */
+            overflow: hidden;
+        }
+
+        .chat-history {
+            flex-grow: 1;
+            overflow-y: auto;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            scroll-behavior: smooth;
+            min-height: 0;
+        }
+
+        /* Thin scrollbar */
+        .chat-history::-webkit-scrollbar {
+            width: 3px;
+        }
+
+        .chat-history::-webkit-scrollbar-thumb {
+            background: rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+        }
+
+        .message {
+            max-width: 80%;
+            padding: 15px 25px;
+            border-radius: 20px;
+            font-size: 16px;
+            line-height: 1.6;
+            position: relative;
+            animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .message.user {
+            align-self: flex-end;
+            background: var(--accent-secondary);
+            color: #000;
+            border-bottom-right-radius: 5px;
+            box-shadow: 0 5px 15px rgba(0, 255, 157, 0.2);
+        }
+
+        .message.bot {
+            align-self: flex-start;
+            background: #f1f8e9;
+            backdrop-filter: none;
+            border: 1px solid var(--glass-border);
+            color: var(--text-main);
+            border-bottom-left-radius: 5px;
+        }
+
+        /* Input Area - fixed at bottom */
+        .chat-input-area {
+            background: #ffffff;
+            box-shadow: 0 -5px 20px rgba(0, 0, 0, 0.05);
+            padding: 15px 20px;
+            border-top: 1px solid var(--glass-border);
+            flex-shrink: 0;
+        }
+
+        .chat-input-area input {
+            margin-bottom: 0;
+            background: transparent;
+            border: none;
+            padding: 0;
+            font-size: 16px;
+        }
+
+        .chat-input-area input:focus {
+            background: transparent;
+            box-shadow: none;
+            outline: none;
+            border: none;
+        }
+
+        .send-btn {
+            background: var(--accent-primary);
+            color: white;
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s;
+            flex-shrink: 0;
+        }
+
+        .send-btn:hover {
+            transform: scale(1.1) rotate(-10deg);
+        }
+
+        .suggestion-chips {
+            display: flex;
+            gap: 10px;
+            overflow-x: auto;
+            padding-bottom: 10px;
+            margin-bottom: 10px;
+        }
+
+        .chip {
+            background: rgba(0, 0, 0, 0.05);
+            border: 1px solid var(--glass-border);
+            padding: 8px 16px;
+            border-radius: 20px;
+            white-space: nowrap;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.2s;
+            color: var(--text-muted);
+        }
+
+        .chip:hover {
+            background: rgba(255, 255, 255, 0.15);
+            color: var(--accent-primary);
+            border-color: var(--accent-primary);
+        }
+
+        @keyframes popIn {
+            from {
+                opacity: 0;
+                transform: scale(0.9) translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
+        }
+
+        .clear-btn {
+            background: rgba(255, 255, 255, 0.8);
+            color: #ff6b6b;
+            border: 1px solid rgba(255, 107, 107, 0.3);
+            border-radius: 50%;
+            width: 36px;
+            height: 36px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+        }
+
+        .clear-btn:hover {
+            background: #ff6b6b;
+            color: white;
+            transform: scale(1.1);
+        }
+
+        .message-row.bot {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            max-width: 85%;
+        }
+
+        /* Mobile adjustments */
+        @media (max-width: 768px) {
+            .chat-header-nav {
+                display: none;
+                /* Hide nav on mobile, use back button */
+            }
+
+            .chat-header {
+                padding: 15px 15px 12px;
+            }
+
+            .chat-header h1 {
+                font-size: 18px;
+            }
+
+            .chat-header p {
+                font-size: 11px;
+                margin: 4px 0 8px;
+            }
+
+            .chat-header i.header-icon {
+                font-size: 22px;
+            }
+
+            .chat-history {
+                padding: 15px;
+                gap: 15px;
+            }
+
+            .chat-input-area {
+                padding: 10px 15px;
+            }
+
+            .message {
+                max-width: 88%;
+                padding: 12px 18px;
+                font-size: 15px;
+            }
+
+            /* Prevent header overlapping with language switcher */
+            .chat-header {
+                padding-top: 30px !important;
+            }
+
+            /* Make suggestion chips wrap text properly */
+            .suggestion-chips {
+                flex-wrap: wrap;
+            }
+
+            .chip {
+                white-space: normal !important;
+                text-align: center;
+                padding: 10px 14px;
+                line-height: 1.4;
+                height: auto;
+                font-size: 13px !important;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Language Switcher -->
+    <div class="lang-float" style="z-index: 200;">
+        <form action="/set_language" method="post">
+            <select name="lang" onchange="this.form.submit()">
+                <option value="en" {% if session.lang=='en' %}selected{% endif %}>English</option>
+                <option value="ta" {% if session.lang=='ta' %}selected{% endif %}>தமிழ்</option>
+            </select>
+        </form>
+    </div>
+
+    <div class="chatbot-layout">
+
+        <!-- Compact Header (matches system design) -->
+        <div class="chat-header">
+            <i class="fas fa-robot header-icon"></i>
+            <h1>{{ t.chatbot_title }}</h1>
+            <p>{{ t.chatbot_subtitle }}</p>
+
+            <nav class="header-nav">
+                <a href="/" class="nav-link {{ 'active' if request.path == '/' }}">{{ t.home }}</a>
+
+                <div class="dropdown">
+                    <button
+                        class="nav-link dropdown-toggle {{ 'active' if request.path in ['/chatbot', '/weather', '/guide', '/crop-prices', '/pests', '/calculator'] }}"
+                        style="background:none; border:none; display:flex; align-items:center;">
+                        {{ t.features }}
+                    </button>
+                    <div class="dropdown-menu">
+                        <a href="/chatbot" class="{{ 'active' if request.path == '/chatbot' }}">{{ t.chatbot }}</a>
+                        <a href="/weather" class="{{ 'active' if request.path == '/weather' }}">{{ t.weather }}</a>
+                        <a href="/guide" class="{{ 'active' if request.path == '/guide' }}">{{ t.guide }}</a>
+                        <a href="/crop-prices" class="{{ 'active' if request.path == '/crop-prices' }}">{{ t.prices
+                            }}</a>
+                        <a href="/pests" class="{{ 'active' if request.path == '/pests' }}">{{ t.pests }}</a>
+                        <a href="/calculator" class="{{ 'active' if request.path == '/calculator' }}">{{ t.calculator
+                            }}</a>
+                    </div>
+                </div>
+
+                <a href="/feedback" class="nav-link {{ 'active' if request.path == '/feedback' }}">{{ t.feedback_link
+                    }}</a>
+
+                <a href="/about" class="nav-link {{ 'active' if request.path == '/about' }}">{{ t.about }}</a>
+            </nav>
+        </div>
+
+        <!-- Chat Container (fills remaining space) -->
+        <div class="chat-container">
+
+            <div class="chat-history" id="chatHistory" style="position: relative;">
+
+                <!-- Welcome Message -->
+                <div class="message bot">
+                    <i class="fas fa-robot" style="margin-right: 8px; color: var(--accent-primary);"></i>
+                    {{ t.chatbot_subtitle }}
+                </div>
+
+                {% for msg in chat_history %}
+                {% if msg.type == 'user' %}
+                <div class="message user">{{ msg.content }}</div>
+                {% else %}
+                <div class="message-row {{ msg.type }}">
+                    <div class="message {{ msg.type }}">
+                        <div class="bubble">
+                            {{ msg.content | safe }}
+                        </div>
+
+                        {% if msg.type == 'bot' %}
+                        <!-- Feedback Controls -->
+                        <div class="feedback-container">
+                            {% if msg.feedback == 'positive' %}
+                            <span style="color: var(--accent-primary); font-size: 12px;">
+                                <i class="fas fa-check"></i> {{ t.feedback_thanks }}
+                            </span>
+                            {% elif msg.feedback == 'negative' %}
+                            <span style="color: #ff6b6b; font-size: 12px;">
+                                <i class="fas fa-check"></i> {{ t.feedback_learn }}
+                            </span>
+                            {% else %}
+                            <span class="feedback-text">{{ t.feedback_text if t.feedback_text else 'Was this helpful?'
+                                }}</span>
+
+                            <button class="feedback-btn up" title="{{ t.chatbot_tooltip_helpful }}"
+                                data-question="{{ msg.question }}" onclick="handleFeedback(this, 'positive')">
+                                <i class="fas fa-thumbs-up"></i>
+                            </button>
+                            <button class="feedback-btn down" title="{{ t.chatbot_tooltip_not_helpful }}"
+                                data-question="{{ msg.question }}" onclick="handleFeedback(this, 'negative')">
+                                <i class="fas fa-thumbs-down"></i>
+                            </button>
+                            {% endif %}
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    {% if msg.type == 'bot' %}
+                    <!-- TTS Button (Outside) -->
+                    <button class="feedback-btn speak" title="{{ t.chatbot_tooltip_read_aloud }}"
+                        onclick="speakText(this)"
+                        style="margin-top: 10px; background: white; border: 1px solid var(--glass-border); width: 32px; height: 32px; border-radius: 50%; color: var(--text-muted); flex-shrink: 0;">
+                        <i class="fas fa-volume-up"></i>
+                    </button>
+                    {% endif %}
+                </div>
+                {% endif %}
+                {% else %}
+                <div style="text-align: center; color: var(--text-muted); margin-top: 50px;">
+                    <i class="fas fa-robot"
+                        style="font-size: 40px; margin-bottom: 20px; color: var(--glass-border);"></i>
+                    <p>{{ t.chatbot_start_msg if t.chatbot_start_msg else 'Start a conversation with the AI assistant.'
+                        }}</p>
+
+                    <!-- Suggestions -->
+                    <div class="suggestion-chips" style="justify-content: center; margin-top: 20px;">
+                        <div class="chip" onclick="fillInput('{{ t.chatbot_example_1 }}')">{{ t.chatbot_example_1 }}
+                        </div>
+                        <div class="chip" onclick="fillInput('{{ t.chatbot_example_2 }}')">{{ t.chatbot_example_2 }}
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+
+                <!-- Hidden anchor for auto-scroll -->
+                <div id="scrollAnchor"></div>
+            </div>
+
+            <!-- Input Area -->
+            <div class="chat-input-area" style="flex-direction: column; align-items: stretch; gap: 15px;">
+                <form method="post" enctype="multipart/form-data" class="no-loader" onsubmit="showTypingIndicator()"
+                    style="display: flex; flex-direction: column; gap: 15px; width: 100%;">
+
+                    <!-- Image Preview Container -->
+                    <div id="imagePreviewContainer"
+                        style="display: none; position: relative; padding: 10px; background: rgba(255,255,255,0.6); border-radius: 15px; margin-bottom: 15px; align-items: center; gap: 15px; border: 1px solid var(--glass-border); backdrop-filter: blur(5px);">
+
+                        <img id="imagePreview" src="" alt="Preview"
+                            style="height: 60px; width: 60px; object-fit: cover; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+
+                        <div style="flex-grow: 1;">
+                            <span id="imageName"
+                                style="font-size: 13px; color: var(--text-main); font-weight: 600; display: block; margin-bottom: 2px;"></span>
+                            <span style="font-size: 11px; color: var(--text-muted);">{{ t.chatbot_image_preview_text
+                                }}</span>
+                        </div>
+
+                        <!-- Close/Delete Button -->
+                        <button type="button" onclick="removeImage()" title="{{ t.chatbot_tooltip_remove_image }}"
+                            style="background: rgba(255, 107, 107, 0.1); border: none; color: #ff6b6b; width: 28px; height: 28px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s;">
+                            <i class="fas fa-times" style="font-size: 14px;"></i>
+                        </button>
+                    </div>
+
+                    <!-- Row 1: Text Input + Send -->
+                    <div style="display: flex; gap: 10px; width: 100%; align-items: center;">
+                        <input type="text" name="question" id="chatInput" placeholder="{{ t.chatbot_placeholder }}"
+                            autocomplete="off" required
+                            style="flex-grow: 1; padding: 12px; border: 1px solid var(--glass-border); border-radius: 25px;">
+
+                        <button type="submit" class="send-btn">
+                            <i class="fas fa-paper-plane"></i>
+                        </button>
+                    </div>
+
+                    <!-- Row 2: Tools (Camera, Mic, Delete) -->
+                    <div style="display: flex; gap: 15px; padding-left: 5px;">
+                        <!-- Image Upload Input (Hidden) -->
+                        <input type="file" name="image" id="imageInput" accept="image/*" style="display: none;"
+                            onchange="handleImageUpload()">
+
+                        <!-- Camera Button -->
+                        <button type="button" class="send-btn"
+                            style="background: var(--accent-secondary); color: #000; width: 40px; height: 40px; font-size: 16px;"
+                            onclick="document.getElementById('imageInput').click()"
+                            title="{{ t.chatbot_tooltip_upload_photo }}">
+                            <i class="fas fa-camera"></i>
+                        </button>
+
+                        <!-- Voice Input Button -->
+                        <button type="button" class="send-btn" id="micBtn"
+                            style="background: var(--accent-secondary); color: #000; width: 40px; height: 40px; font-size: 16px;"
+                            onclick="startDictation()" title="{{ t.chatbot_tooltip_voice_typing }}">
+                            <i class="fas fa-microphone"></i>
+                        </button>
+
+                        <!-- Clear Chat -->
+                        {% if chat_history|length > 0 %}
+                        <button type="submit" formnovalidate formaction="/clear_chat" class="send-btn"
+                            title="{{ t.chatbot_clear }}"
+                            style="background: #fff0f0; color: #ff6b6b; border: 1px solid #ffcdd2; width: 40px; height: 40px; font-size: 16px;"
+                            onclick="return confirm('{{ t.chatbot_clear }}?')">
+                            <i class="fas fa-trash-alt"></i>
+                        </button>
+                        {% endif %}
+                    </div>
+                </form>
+            </div>
+
+        </div> <!-- .chat-container -->
+
+    </div> <!-- .chatbot-layout -->
+
+    <script>
+        function showTypingIndicator() {
+            const history = document.getElementById('chatHistory');
+            const typingHTML = `
+                    <div class="message bot">
+                        <i class="fas fa-robot" style="margin-right: 8px; color: var(--accent-primary);"></i>
+                        <div class="typing-indicator">
+                            <div class="typing-dots">
+                                <div class="typing-dot"></div>
+                                <div class="typing-dot"></div>
+                                <div class="typing-dot"></div>
+                            </div>
+                        </div>
+                    </div>`;
+
+            // Append user message immediately (visual trick before reload)
+            const input = document.getElementById('chatInput');
+            const imageInput = document.getElementById('imageInput');
+
+            let userContent = "";
+
+            // Add image preview to user message if present
+            if (imageInput.files.length > 0) {
+                const file = imageInput.files[0];
+                const objectUrl = URL.createObjectURL(file);
+                userContent += `<div style="margin-bottom:5px;"><img src="${objectUrl}" style="max-height: 150px; border-radius: 10px;"></div>`;
+            }
+
+            if (input.value) {
+                userContent += `<div>${input.value}</div>`;
+            }
+
+            if (userContent) {
+                const userHTML = `<div class="message user">${userContent}</div>`;
+                history.insertAdjacentHTML('beforeend', userHTML);
+            }
+
+            history.insertAdjacentHTML('beforeend', typingHTML);
+
+            // Scroll to bottom
+            const anchor = document.getElementById('scrollAnchor');
+            if (anchor) anchor.scrollIntoView();
+        }
+
+        function handleScroll() {
+            const history = document.getElementById('chatHistory');
+            const anchor = document.getElementById('scrollAnchor');
+            if (anchor) anchor.scrollIntoView();
+        }
+
+        function handleImageUpload() {
+            const input = document.getElementById('imageInput');
+            const chatInput = document.getElementById('chatInput');
+            const previewContainer = document.getElementById('imagePreviewContainer');
+            const previewImage = document.getElementById('imagePreview');
+            const imageName = document.getElementById('imageName');
+
+            if (input.files.length > 0) {
+                const file = input.files[0];
+                const reader = new FileReader();
+
+                reader.onload = function (e) {
+                    previewImage.src = e.target.result;
+                    previewContainer.style.display = 'flex';
+                    imageName.textContent = file.name;
+
+                    // Adjust text input
+                    chatInput.placeholder = "{{ t.chatbot_placeholder_image }}";
+                    chatInput.required = false;
+                    chatInput.focus();
+                }
+
+                reader.readAsDataURL(file);
+            } else {
+                removeImage();
+            }
+        }
+
+        function removeImage() {
+            const input = document.getElementById('imageInput');
+            const chatInput = document.getElementById('chatInput');
+            const previewContainer = document.getElementById('imagePreviewContainer');
+
+            input.value = ""; // Clear file input
+            previewContainer.style.display = 'none';
+            chatInput.placeholder = "{{ t.chatbot_placeholder }}";
+            chatInput.required = true;
+        }
+    </script>
+    </div>
+
+    <!-- Footer -->
+    <div style="text-align: center; padding: 40px 20px; color: #999; font-size: 13px;">
+        <p>© {{ current_year }} {{ t.footer_text }}</p>
+    </div>
+
+    <!-- Floating Dock -->
+    <!-- Dock Removed -->
+
+    <script>
+        // Translation Dictionary for JS
+        const translations = {
+            thanks: "{{ t.feedback_thanks }}",
+            learn: "{{ t.feedback_learn }}"
+        };
+
+        function fillInput(text) {
+            document.getElementById('chatInput').value = text;
+        }
+
+        // Auto-scroll logic: scroll to the start of the latest message pair
+        const userMessages = document.querySelectorAll('.message.user');
+        if (userMessages.length > 0) {
+            // Smoothly scroll the last user message into view so the AI reply starts exactly below it
+            userMessages[userMessages.length - 1].scrollIntoView({ behavior: 'smooth', block: 'start' });
+        } else {
+            // Fallback to bottom if no user message yet
+            const history = document.getElementById('chatHistory');
+            const anchor = document.getElementById('scrollAnchor');
+            if (anchor) anchor.scrollIntoView();
+        }
+
+        // Feedback Function
+        function handleFeedback(btnElement, type) {
+            const question = btnElement.getAttribute('data-question');
+
+            // Visual Feedback
+            const container = btnElement.parentElement;
+            container.innerHTML = type === 'positive'
+                ? `<span style="color: var(--accent-primary); font-size: 12px;"><i class="fas fa-check"></i> ${translations.thanks}</span>`
+                : `<span style="color: #ff6b6b; font-size: 12px;"><i class="fas fa-check"></i> ${translations.learn}</span>`;
+
+            // Send to Backend
+            fetch('/submit_feedback', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    question: question,
+                    feedback: type
+                })
+            }).catch(err => console.error('Feedback Error:', err));
+        }
+
+        // Simple Markdown Formatter for AI Responses
+        document.addEventListener("DOMContentLoaded", function () {
+            const bubbles = document.querySelectorAll('.message.bot .bubble');
+            bubbles.forEach(bubble => {
+                let text = bubble.innerHTML;
+
+                // Prevent double formatting
+                if (bubble.dataset.formatted) return;
+
+                // 1. Bold: **text** -> <strong>text</strong> (Forest Green for emphasis)
+                text = text.replace(/\*\*(.*?)\*\*/g, '<strong style="color:var(--accent-primary)">$1</strong>');
+
+                // 2. Headings: # text -> <h3>text</h3>
+                text = text.replace(/^# (.*$)/gm, '<h3>$1</h3>');
+
+                // 3. Bullet points: * text -> <br>• text 
+                // We look for "* " at start of line or after newline
+                text = text.replace(/(\n|^)\* /g, '<br><span style="color:var(--accent-primary); margin-right:5px;">•</span> ');
+
+                // 4. Clean up any leading <br> created by the regex
+                if (text.startsWith('<br>')) text = text.substring(4);
+
+                bubble.innerHTML = text;
+                bubble.dataset.formatted = "true";
+            });
+        });
+
+        // --- HYBRID VOICE LOGIC (Universal Support) ---
+        let mediaRecorder;
+        let audioChunks = [];
+        let isRecording = false;
+
+        function startDictation() {
+            const micBtn = document.getElementById('micBtn');
+
+            if (isRecording) {
+                if (mediaRecorder && mediaRecorder.state !== "inactive") {
+                    mediaRecorder.stop();
+                }
+                return;
+            }
+
+            // 1. CHECK FOR NATIVE SUPPORT (Chrome/Edge)
+            if (window.hasOwnProperty('webkitSpeechRecognition')) {
+                var recognition = new webkitSpeechRecognition();
+                recognition.continuous = false;
+                recognition.interimResults = false;
+                recognition.lang = "{{ 'ta-IN' if session.lang == 'ta' else 'en-US' }}";
+
+                recognition.start();
+                setMicState(true);
+
+                recognition.onresult = function (e) {
+                    try {
+                        const text = e.results[0][0].transcript;
+                        document.getElementById('chatInput').value = text;
+                    } catch (err) {
+                        console.error("Voice Parse Error:", err);
+                    }
+                    recognition.stop();
+                    setMicState(false);
+                };
+
+                recognition.onerror = function (e) {
+                    console.error("Voice Error:", e);
+                    setMicState(false);
+
+                    // BRAVE FIX: Network error = Blocked Google Service -> Use Fallback
+                    if (e.error === 'network' || e.error === 'service-not-allowed') {
+                        console.log("Native Voice blocked (Brave?). Switching to Server Fallback...");
+                        showToast("⚠️ Browser blocked native voice. Switching to AI Engine...");
+                        useServerFallback();
+                    }
+                    else if (e.error === 'not-allowed') {
+                        showToast("❌ Microphone access denied.");
+                    }
+                    else {
+                        showToast("❌ Voice recognition failed. Try again.");
+                    }
+                    recognition.stop();
+                };
+
+                recognition.onend = function () {
+                    // Do not reset here if fallback was triggered
+                };
+            }
+            else {
+                // No native support, go straight to fallback
+                useServerFallback();
+            }
+        }
+
+        // 2. FALLBACK: SERVER-SIDE TRANSCRIPTION (Universal)
+        function useServerFallback() {
+            if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+                navigator.mediaDevices.getUserMedia({ audio: true })
+                    .then(stream => {
+                        mediaRecorder = new MediaRecorder(stream);
+                        audioChunks = [];
+
+                        mediaRecorder.start();
+                        setMicState(true);
+                        isRecording = true;
+
+                        mediaRecorder.addEventListener("dataavailable", event => {
+                            audioChunks.push(event.data);
+                        });
+
+                        mediaRecorder.addEventListener("stop", () => {
+                            setMicState(false);
+                            isRecording = false;
+
+                            const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+                            sendAudioServer(audioBlob);
+
+                            stream.getTracks().forEach(track => track.stop());
+                        });
+
+                        // Auto-stop after 5 seconds to prevent huge files
+                        setTimeout(() => {
+                            if (mediaRecorder.state !== "inactive") {
+                                mediaRecorder.stop();
+                            }
+                        }, 5000);
+
+                    })
+                    .catch(err => {
+                        console.error("Mic Access Error:", err);
+                        showToast("❌ Microphone access denied.");
+                        setMicState(false);
+                    });
+            } else {
+                showToast("⚠️ Voice not supported in this browser.");
+            }
+        }
+
+        function setMicState(active) {
+            const micBtn = document.getElementById('micBtn');
+            if (active) {
+                micBtn.style.background = "#ff4444";
+                micBtn.style.color = "white";
+                micBtn.classList.add('pulse-animation'); // Assuming or adding basic pulse
+            } else {
+                micBtn.style.background = "var(--glass-bg)";
+                micBtn.style.color = "var(--text-primary)";
+                micBtn.classList.remove('pulse-animation');
+            }
+        }
+
+        function sendAudioServer(blob) {
+            const formData = new FormData();
+            formData.append("audio", blob);
+
+            // Show "Processing..." indicator
+            document.getElementById('chatInput').placeholder = "Processing voice...";
+
+            fetch('/transcribe_audio', {
+                method: 'POST',
+                body: formData
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.text) {
+                        document.getElementById('chatInput').value = data.text;
+                    } else if (data.error) {
+                        showToast("⚠️ Transcription failed: " + data.error);
+                    }
+                })
+                .catch(err => {
+                    console.error("Server Error:", err);
+                    showToast("❌ Network error during transcription.");
+                })
+                .finally(() => {
+                    document.getElementById('chatInput').placeholder = "{{ t.placeholder }}";
+                });
+        }
+
+        // Simple Toast Notification
+        function showToast(msg) {
+            // Create toast element on the fly
+            let toast = document.createElement('div');
+            toast.style.position = 'fixed';
+            toast.style.bottom = '80px';
+            toast.style.left = '50%';
+            toast.style.transform = 'translateX(-50%)';
+            toast.style.background = '#323232';
+            toast.style.color = 'white';
+            toast.style.padding = '12px 24px';
+            toast.style.borderRadius = '25px';
+            toast.style.boxShadow = '0 5px 15px rgba(0,0,0,0.2)';
+            toast.style.zIndex = '1000';
+            toast.style.fontSize = '14px';
+            toast.style.opacity = '0';
+            toast.style.transition = 'opacity 0.3s';
+            toast.innerText = msg;
+
+            document.body.appendChild(toast);
+
+            // Animate in
+            setTimeout(() => { toast.style.opacity = '1'; }, 10);
+
+            // Animate out
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                setTimeout(() => document.body.removeChild(toast), 300);
+            }, 3000);
+        }
+
+        function resetMic() {
+            setMicState(false);
+        }
+
+        function resetMic() {
+            setMicState(false);
+        }
+
+        // --- TEXT TO SPEECH (TTS) ---
+        function speakText(btn) {
+            const row = btn.closest('.message-row');
+            const bubble = row ? row.querySelector('.bubble') : btn.closest('.message').querySelector('.bubble');
+
+            let text = bubble.innerText.replace(/[\*#•]/g, '').trim(); 
+
+            // If user clicked the button that is already playing, stop it
+            if (btn.classList.contains('speaking')) {
+                window.speechSynthesis.cancel();
+                resetAllSpeakButtons();
+                return;
+            }
+
+            window.speechSynthesis.cancel();
+            resetAllSpeakButtons();
+            if (!text) return;
+
+            const lang = document.documentElement.lang || 'en';
+
+            // Use a slight delay to prevent browser crash/race-condition from the cancel() call
+            setTimeout(() => {
+                let utterance = new SpeechSynthesisUtterance(text);
+                utterance.lang = lang === 'ta' ? 'ta-IN' : 'en-US';
+                utterance.rate = 1.0;
+
+                // Pick best available voice smoothly
+                const voices = window.speechSynthesis.getVoices();
+                if (lang === 'en') {
+                    // Look for premium voices, default to standard female, fallback to anything English
+                    let bestEn = voices.find(v => v.lang.startsWith('en') && (v.name.includes('Natural') || v.name.includes('Online') || v.name.includes('Google')))
+                              || voices.find(v => v.lang.startsWith('en') && v.name.includes('Female'))
+                              || voices.find(v => v.lang.startsWith('en'));
+                    if (bestEn) utterance.voice = bestEn;
+                } else {
+                    let bestTa = voices.find(v => v.lang.startsWith('ta') && v.name.includes('Google'))
+                              || voices.find(v => v.lang.startsWith('ta'));
+                    if (bestTa) utterance.voice = bestTa;
+                }
+
+                btn.classList.add('speaking');
+                btn.innerHTML = '<i class="fas fa-stop"></i>';
+
+                utterance.onend = function () {
+                    resetAllSpeakButtons();
+                };
+
+                utterance.onerror = function (e) {
+                    console.log("TTS Error: ", e);
+                    resetAllSpeakButtons();
+                };
+
+                // Prevent Garbage Collection bug in Chrome
+                window.activeUtterance = utterance;
+                window.speechSynthesis.speak(utterance);
+            }, 50);
+        }
+
+        function resetAllSpeakButtons() {
+            document.querySelectorAll('.feedback-btn.speak').forEach(b => {
+                b.classList.remove('speaking');
+                b.innerHTML = '<i class="fas fa-volume-up"></i>';
+            });
+        }
+
+        // Pre-load voices for Chrome
+        window.speechSynthesis.onvoiceschanged = () => {
+            window.speechSynthesis.getVoices();
+        };
+
+
+    </script>
+
+    <script src="/static/loader.js"></script>
+</body>
+
+</html>

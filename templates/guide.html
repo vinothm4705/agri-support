@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="{{ session.get('lang', 'en') }}">
+
+<head>
+    <title>{{ t.guide_title }}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/static/style.css?v=2.0">
+    <link rel="stylesheet" href="/static/vendor/fontawesome/css/all.min.css">
+    <link rel="manifest" href="/static/manifest.json">
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/static/service-worker.js')
+                    .then(reg => console.log('SW registered!', reg.scope))
+                    .catch(err => console.log('SW failed:', err));
+            });
+        }
+    </script>
+</head>
+
+<body>
+
+    <!-- Language Switcher -->
+    <div class="lang-float">
+        <form method="post" action="/set_language">
+            <select name="lang" onchange="this.form.submit()">
+                <option value="en" {% if session.lang=="en" %}selected{% endif %}>English</option>
+                <option value="ta" {% if session.lang=="ta" %}selected{% endif %}>தமிழ்</option>
+            </select>
+        </form>
+    </div>
+
+
+    <div class="page-header-card">
+        <i class="fas fa-book-reader"></i>
+        <h1>{{ t.guide_title }}</h1>
+        <p>{{ t.guide_subtitle }}</p>
+
+        <!-- Header Navigation -->
+        <nav class="header-nav">
+            <a href="/" class="nav-link {{ 'active' if request.path == '/' }}">{{ t.home }}</a>
+
+            <div class="dropdown">
+                <button
+                    class="nav-link dropdown-toggle {{ 'active' if request.path in ['/chatbot', '/weather', '/guide', '/crop-prices', '/pests', '/calculator'] }}"
+                    style="background:none; border:none; display:flex; align-items:center;">
+                    {{ t.features }}
+                </button>
+                <div class="dropdown-menu">
+                    <a href="/chatbot" class="{{ 'active' if request.path == '/chatbot' }}">{{ t.chatbot }}</a>
+                    <a href="/weather" class="{{ 'active' if request.path == '/weather' }}">{{ t.weather }}</a>
+                    <a href="/guide" class="{{ 'active' if request.path == '/guide' }}">{{ t.guide }}</a>
+                    <a href="/crop-prices" class="{{ 'active' if request.path == '/crop-prices' }}">{{ t.prices }}</a>
+                    <a href="/pests" class="{{ 'active' if request.path == '/pests' }}">{{ t.pests }}</a>
+                    <a href="/calculator" class="{{ 'active' if request.path == '/calculator' }}">{{ t.calculator }}</a>
+                </div>
+            </div>
+
+            <a href="/feedback" class="nav-link {{ 'active' if request.path == '/feedback' }}">{{ t.feedback_link }}</a>
+
+            <a href="/about" class="nav-link {{ 'active' if request.path == '/about' }}">{{ t.about }}</a>
+        </nav>
+    </div>
+
+    <div class="page-wrapper">
+
+        <!-- WIZARD UI -->
+        {% if not result %}
+        <div class="wizard-card">
+            <!-- Hidden Form for Submission -->
+            <form method="post" id="guideForm" style="display:none;">
+                <input type="hidden" name="district" id="inputDistrict">
+                <input type="hidden" name="crop" id="inputCrop">
+            </form>
+
+            <!-- STEP 1: DISTRICT -->
+            <div id="step1" class="step-content active" style="display:flex; width:100%;">
+                <div class="wizard-left">
+                    <div class="wizard-step-indicator">{{ t.step_1 }}</div>
+                    <div class="wizard-title">{{ t.guide_step1_title }}</div>
+                    <div class="wizard-desc">{{ t.guide_step1_desc }}</div>
+                    <button class="btn-wizard" id="btnContinue" onclick="showStep2()" disabled>
+                        {{ t.continue }} <i class="fas fa-arrow-right"></i>
+                    </button>
+                </div>
+                <div class="wizard-right">
+                    <div class="wizard-grid">
+                        {% for d in districts %}
+                        <div class="tile-option" onclick="selectDistrict('{{ d[0] }}', this)">
+                            <i class="fas fa-map-marker-alt tile-icon"></i>
+                            <div class="tile-label">{{ d[2] if session.lang == 'ta' else d[1] }}</div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- STEP 2: CROP -->
+            <div id="step2" class="step-content" style="display:none; width:100%;">
+                <div class="wizard-left">
+                    <div class="wizard-step-indicator">{{ t.step_2 }}</div>
+                    <div class="wizard-title">{{ t.guide_step2_title }}</div>
+                    <div class="wizard-desc">{{ t.guide_step2_desc }}</div>
+
+                    <button class="btn-wizard" id="btnSubmit" onclick="submitGuide()" disabled
+                        style="background: var(--accent-primary);">
+                        {{ t.get_guide }} <i class="fas fa-check"></i>
+                    </button>
+
+                    <a href="javascript:void(0)" onclick="goBack()"
+                        style="margin-top: 20px; font-size: 13px; color: #999; font-weight: 600;">
+                        {{ t.back }}
+                    </a>
+                </div>
+                <div class="wizard-right">
+                    <div class="wizard-grid">
+                        {% for c in crops %}
+                        <div class="tile-option" onclick="selectCrop('{{ c[0] }}', this)">
+                            <i class="fas fa-seedling tile-icon"></i>
+                            <div class="tile-label">{{ c[2] if session.lang == 'ta' else c[1] }}</div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <script>
+            function selectDistrict(value, element) {
+                document.getElementById('inputDistrict').value = value;
+
+                // Visual Selection
+                document.querySelectorAll('#step1 .tile-option').forEach(el => el.classList.remove('selected'));
+                element.classList.add('selected');
+
+                // Enable Continue
+                document.getElementById('btnContinue').disabled = false;
+            }
+
+            function selectCrop(value, element) {
+                document.getElementById('inputCrop').value = value;
+
+                // Visual Selection
+                document.querySelectorAll('#step2 .tile-option').forEach(el => el.classList.remove('selected'));
+                element.classList.add('selected');
+
+                // Enable Submit
+                document.getElementById('btnSubmit').disabled = false;
+            }
+
+            function showStep2() {
+                document.getElementById('step1').style.display = 'none';
+                document.getElementById('step2').style.display = 'flex';
+                // Trigger reflow/animation handled by CSS if needed, or simple display switch
+            }
+
+            function goBack() {
+                document.getElementById('step2').style.display = 'none';
+                document.getElementById('step1').style.display = 'flex';
+            }
+
+            function submitGuide() {
+                document.getElementById('guideForm').submit();
+            }
+        </script>
+
+        {% if result and result.error %}
+        <div class="glass-panel"
+            style="text-align: center; padding: 60px 40px; animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;">
+            <div class="search-animate-wrapper">
+                <i class="fas fa-search search-animate-icon"></i>
+            </div>
+            <h3 style="color: var(--text-main); margin-bottom: 10px;">{{ t.pests_no_data_title }}</h3>
+            <p style="color: var(--text-muted); margin-bottom: 30px; font-size: 16px;">
+                {{ result.error }}
+            </p>
+            <a href="/guide" class="btn"
+                style="background: var(--accent-primary); color: white; padding: 12px 25px; border-radius: 8px;">
+                {{ t.start_over }} ↺
+            </a>
+        </div>
+        {% endif %}
+
+        {% if result and not result.error %}
+        <div class="glass-panel">
+            <h2
+                style="border-bottom: 1px solid var(--glass-border); padding-bottom: 20px; margin-bottom: 30px; display: flex; justify-content: space-between; align-items: center;">
+                <span><span style="color: var(--accent-primary);">{{ result.crop }}</span> {{ t.guide_result_title
+                    }}</span>
+                <a href="/guide" class="btn"
+                    style="background: transparent; color: var(--text-muted); padding: 8px 16px; border: 1px solid #e0e0e0; font-size: 14px; box-shadow: none;">{{
+                    t.start_over }} ↺</a>
+            </h2>
+
+            <div
+                style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 30px; margin-bottom: 40px;">
+                <div class="info-card">
+                    <h3 style="color: var(--accent-secondary);"><i class="fas fa-map-marked-alt"></i> {{
+                        t.section_crop_overview }}</h3>
+                    <p style="margin-top: 15px;">
+                        <strong>{{ t.label_district }}:</strong> {{ result.district }} <br>
+                        <strong>{{ t.label_crop }}:</strong> {{ result.crop }}
+                    </p>
+                </div>
+
+                <div class="info-card">
+                    <h3 style="color: var(--accent-gold);"><i class="fas fa-sun"></i> {{ t.section_season_soil }}</h3>
+                    <p style="margin-top: 15px;">
+                        <strong>{{ t.label_season }}:</strong> {{ result.season }}<br>
+                        <strong>{{ t.label_soil }}:</strong> {{ result.soil }}
+                    </p>
+                    <p style="font-size: 14px; color: var(--text-muted); margin-top: 10px;">{{ result.explanation }}</p>
+                </div>
+            </div>
+
+            <h3 style="margin-bottom: 20px;"><i class="fas fa-list-ol"></i> {{ t.section_steps }}</h3>
+            <div style="position: relative; border-left: 2px solid var(--glass-border); padding-left: 30px;">
+                {% for step in result.steps %}
+                <div style="margin-bottom: 30px; position: relative;">
+                    <div
+                        style="position: absolute; left: -39px; top: 0; width: 16px; height: 16px; background: var(--accent-primary); border-radius: 50%; box-shadow: 0 0 10px var(--accent-primary);">
+                    </div>
+                    <div class="step-card">
+                        {{ step }}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+    </div>
+
+    <!-- Footer -->
+    <div style="text-align: center; padding: 40px 20px; color: #999; font-size: 13px;">
+        <p>© {{ current_year }} {{ t.footer_text }}</p>
+    </div>
+    </div>
+
+    <!-- Dock Removed -->
+
+    <script src="/static/loader.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="{{ session.get('lang', 'en') }}">
+
+<head>
+    <title>{{ t.about_page_title }}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/static/style.css?v=2.0">
+    <link rel="stylesheet" href="/static/vendor/fontawesome/css/all.min.css">
+
+    <style>
+        body {
+            font-family: 'Outfit', sans-serif;
+            background: #fdfdfd;
+        }
+
+        /* Hero Section */
+        .mission-hero {
+            background: linear-gradient(135deg, #1b5e20, #4caf50);
+            color: white;
+            padding: 80px 20px;
+            text-align: center;
+            border-radius: 0 0 30px 30px;
+            margin-bottom: 50px;
+            box-shadow: 0 10px 30px rgba(76, 175, 80, 0.3);
+        }
+
+        .mission-hero i {
+            font-size: 50px;
+            margin-bottom: 20px;
+            opacity: 0.9;
+        }
+
+        .mission-hero h1 {
+            font-size: 36px;
+            margin: 0;
+            font-weight: 800;
+            letter-spacing: -1px;
+            color: #ffffff !important;
+        }
+
+
+
+        .mission-hero p {
+            font-size: 18px;
+            opacity: 0.9;
+            max-width: 600px;
+            margin: 15px auto 0;
+            line-height: 1.6;
+        }
+
+        .page-wrapper {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* Timeline */
+        .timeline-section {
+            margin-bottom: 60px;
+        }
+
+        .timeline-title {
+            text-align: center;
+            font-size: 24px;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 40px;
+        }
+
+        .timeline {
+            position: relative;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .timeline::after {
+            content: '';
+            position: absolute;
+            width: 4px;
+            background-color: #e0e0e0;
+            top: 0;
+            bottom: 0;
+            left: 50%;
+            margin-left: -2px;
+            border-radius: 2px;
+        }
+
+        .timeline-container {
+            padding: 10px 40px;
+            position: relative;
+            background-color: inherit;
+            width: 50%;
+            box-sizing: border-box;
+        }
+
+        .timeline-container::after {
+            content: '';
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            right: -10px;
+            background-color: white;
+            border: 4px solid #4CAF50;
+            top: 15px;
+            border-radius: 50%;
+            z-index: 1;
+        }
+
+        .timeline-left {
+            left: 0;
+        }
+
+        .timeline-right {
+            left: 50%;
+        }
+
+        .timeline-left::before {
+            content: " ";
+            height: 0;
+            position: absolute;
+            top: 18px;
+            width: 0;
+            z-index: 1;
+            right: 30px;
+            border: medium solid white;
+            border-width: 10px 0 10px 10px;
+            border-color: transparent transparent transparent white;
+        }
+
+        .timeline-right::before {
+            content: " ";
+            height: 0;
+            position: absolute;
+            top: 18px;
+            width: 0;
+            z-index: 1;
+            left: 30px;
+            border: medium solid white;
+            border-width: 10px 10px 10px 0;
+            border-color: transparent white transparent transparent;
+        }
+
+        .timeline-right::after {
+            left: -10px;
+        }
+
+        .timeline-content {
+            padding: 20px;
+            background-color: white;
+            position: relative;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+        }
+
+        .timeline-content h2 {
+            margin: 0 0 10px;
+            font-size: 18px;
+            color: #2e7d32;
+        }
+
+        .timeline-content p {
+            margin: 0;
+            font-size: 14px;
+            color: #666;
+            line-height: 1.5;
+        }
+
+        /* Tech Stack */
+        .tech-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 20px;
+            margin-bottom: 60px;
+        }
+
+        .tech-card {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            transition: transform 0.2s;
+        }
+
+        .tech-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .tech-card i {
+            font-size: 30px;
+            margin-bottom: 15px;
+        }
+
+        .tech-card h4 {
+            margin: 0;
+            font-size: 16px;
+            color: #333;
+        }
+
+        /* Developer Profile */
+        .dev-card {
+            background: white;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+            display: flex;
+            align-items: center;
+            max-width: 700px;
+            margin: 0 auto;
+        }
+
+        .dev-img {
+            width: 200px;
+            height: 200px;
+            background: #eee;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #ccc;
+            font-size: 60px;
+        }
+
+        .dev-info {
+            padding: 30px;
+        }
+
+        .dev-info h2 {
+            margin: 0 0 5px;
+            color: #333;
+        }
+
+        .dev-info h4 {
+            margin: 0 0 15px;
+            color: var(--accent-primary);
+            font-weight: 600;
+            font-size: 14px;
+            text-transform: uppercase;
+        }
+
+        .dev-info p {
+            margin: 0 0 20px;
+            color: #666;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .btn-contact {
+            display: inline-block;
+            padding: 10px 20px;
+            background: var(--accent-primary);
+            color: white;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 13px;
+        }
+
+        @media screen and (max-width: 768px) {
+            .mission-hero {
+                padding: 40px 15px;
+                /* Reduce massive hero padding */
+                margin-bottom: 30px;
+                border-radius: 0 0 20px 20px;
+            }
+
+            .mission-hero h1 {
+                font-size: 28px;
+            }
+
+            .mission-hero p {
+                font-size: 15px;
+            }
+
+            .timeline::after {
+                left: 31px;
+            }
+
+            .timeline-container {
+                width: 100%;
+                padding-left: 70px;
+                padding-right: 15px;
+            }
+
+            .timeline-container::after {
+                left: 21px;
+            }
+
+            .timeline-left::after,
+            .timeline-right::after {
+                left: 21px;
+            }
+
+            .timeline-right {
+                left: 0%;
+            }
+
+            .tech-grid,
+            .source-grid {
+                grid-template-columns: repeat(2, 1fr);
+                /* 2 small boxes per row */
+                gap: 12px;
+            }
+
+            .tech-card {
+                padding: 15px 10px;
+            }
+
+            .tech-card i {
+                font-size: 24px;
+                margin-bottom: 8px;
+            }
+
+            .tech-card h4 {
+                font-size: 12px;
+            }
+
+            .source-card {
+                padding: 15px 12px;
+            }
+
+            .source-card h3 {
+                font-size: 14px;
+                margin: 0 0 5px;
+                gap: 5px;
+            }
+
+            .source-card p {
+                font-size: 11px;
+                line-height: 1.3;
+            }
+
+            .dev-card {
+                flex-direction: column;
+                text-align: center;
+                margin: 0 15px;
+            }
+
+            .dev-img {
+                width: 100%;
+                height: 180px;
+                /* Slightly shorter image */
+            }
+
+            .dev-info {
+                padding: 20px;
+            }
+        }
+
+        /* Data Sources */
+        .source-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 25px;
+            margin-bottom: 60px;
+        }
+
+        .source-card {
+            background: white;
+            padding: 30px 25px;
+            border-radius: 20px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.05);
+            border: 1px solid #f0f0f0;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .source-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.08);
+            border-color: rgba(46, 125, 50, 0.2);
+        }
+
+        .source-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+            background: var(--accent-primary);
+            opacity: 0.5;
+        }
+
+        .source-card h3 {
+            margin: 0 0 10px;
+            font-size: 18px;
+            color: #2e7d32;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .source-card p {
+            margin: 0;
+            font-size: 14px;
+            color: #666;
+            line-height: 1.6;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Language Switcher -->
+    <div class="lang-float">
+        <form method="post" action="/set_language">
+            <select name="lang" onchange="this.form.submit()">
+                <option value="en" {% if session.lang=="en" %}selected{% endif %}>English</option>
+                <option value="ta" {% if session.lang=="ta" %}selected{% endif %}>தமிழ்</option>
+            </select>
+        </form>
+    </div>
+
+    <!-- Hero / Header -->
+    <div class="page-header-card">
+        <i class="fas fa-seedling"></i>
+        <h1>{{ t.about_hero_title }}</h1>
+        <p>{{ t.about_hero_desc }}</p>
+
+        <!-- Header Navigation -->
+        <nav class="header-nav">
+            <a href="/" class="nav-link {{ 'active' if request.path == '/' }}">{{ t.home }}</a>
+
+            <div class="dropdown">
+                <button
+                    class="nav-link dropdown-toggle {{ 'active' if request.path in ['/chatbot', '/weather', '/guide', '/crop-prices', '/pests', '/calculator'] }}"
+                    style="background:none; border:none; display:flex; align-items:center;">
+                    {{ t.features }}
+                </button>
+                <div class="dropdown-menu">
+                    <a href="/chatbot" class="{{ 'active' if request.path == '/chatbot' }}">{{ t.chatbot }}</a>
+                    <a href="/weather" class="{{ 'active' if request.path == '/weather' }}">{{ t.weather }}</a>
+                    <a href="/guide" class="{{ 'active' if request.path == '/guide' }}">{{ t.guide }}</a>
+                    <a href="/crop-prices" class="{{ 'active' if request.path == '/crop-prices' }}">{{ t.prices }}</a>
+                    <a href="/pests" class="{{ 'active' if request.path == '/pests' }}">{{ t.pests }}</a>
+                    <a href="/calculator" class="{{ 'active' if request.path == '/calculator' }}">{{ t.calculator }}</a>
+                </div>
+            </div>
+
+            <a href="/feedback" class="nav-link {{ 'active' if request.path == '/feedback' }}">{{ t.feedback_link }}</a>
+
+            <a href="/about" class="nav-link {{ 'active' if request.path == '/about' }}">{{ t.about }}</a>
+        </nav>
+    </div>
+
+    <div class="page-wrapper">
+
+        <!-- Timeline -->
+        <div class="timeline-section">
+            <h2 class="timeline-title">{{ t.timeline_title }}</h2>
+            <div class="timeline">
+                <div class="timeline-container timeline-left">
+                    <div class="timeline-content">
+                        <h2>{{ t.timeline_phase_1_title }}</h2>
+                        <p>{{ t.timeline_phase_1_desc }}</p>
+                    </div>
+                </div>
+                <div class="timeline-container timeline-right">
+                    <div class="timeline-content">
+                        <h2>{{ t.timeline_phase_2_title }}</h2>
+                        <p>{{ t.timeline_phase_2_desc }}</p>
+                    </div>
+                </div>
+                <div class="timeline-container timeline-left">
+                    <div class="timeline-content">
+                        <h2 style="color: #1565c0;">{{ t.timeline_phase_3_title }} <span
+                                style="font-size: 10px; background: #e3f2fd; color: #1565c0; padding: 3px 6px; border-radius: 4px; vertical-align: middle;">CURRENT</span>
+                        </h2>
+                        <p>{{ t.timeline_phase_3_desc }}</p>
+                    </div>
+                </div>
+                <div class="timeline-container timeline-right">
+                    <div class="timeline-content">
+                        <h2 style="color: #999;">{{ t.timeline_phase_4_title }}</h2>
+                        <p>{{ t.timeline_phase_4_desc }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tech Stack -->
+        <h2 class="timeline-title" style="margin-top: 80px;">{{ t.tech_stack_title }}</h2>
+        <div class="tech-grid">
+            <div class="tech-card">
+                <i class="fab fa-python" style="color: #3776ab;"></i>
+                <h4>Python & Flask</h4>
+            </div>
+            <div class="tech-card">
+                <i class="fas fa-brain" style="color: #9c27b0;"></i>
+                <h4>Google Gemini AI</h4>
+            </div>
+            <div class="tech-card">
+                <i class="fas fa-chart-pie" style="color: #ff9800;"></i>
+                <h4>Chart.js</h4>
+            </div>
+            <div class="tech-card">
+                <i class="fas fa-language" style="color: #e91e63;"></i>
+                <h4>Jinja2 (i18n)</h4>
+            </div>
+        </div>
+
+        <!-- Developer Profile -->
+        <!-- Data Sources & Credits -->
+        <h2 class="timeline-title" style="margin-top: 80px;">{{ t.data_sources_title }}</h2>
+        <div class="source-grid">
+            <!-- TNAU -->
+            <div class="source-card">
+                <h3><i class="fas fa-university"></i> {{ t.source_tnau_title }}</h3>
+                <p>{{ t.source_tnau_desc }}</p>
+            </div>
+
+            <!-- Agmarknet -->
+            <div class="source-card">
+                <h3><i class="fas fa-chart-line"></i> {{ t.source_agmarknet_title }}</h3>
+                <p>{{ t.source_agmarknet_desc }}</p>
+            </div>
+
+            <!-- OpenWeather -->
+            <div class="source-card">
+                <h3><i class="fas fa-cloud-sun"></i> {{ t.source_openweather_title }}</h3>
+                <p>{{ t.source_openweather_desc }}</p>
+            </div>
+
+            <!-- Google Gemini -->
+            <div class="source-card">
+                <h3><i class="fas fa-robot"></i> {{ t.source_gemini_title }}</h3>
+                <p>{{ t.source_gemini_desc }}</p>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Footer -->
+    <div style="text-align: center; padding: 60px 20px; color: #999; font-size: 13px;">
+        <p>© {{ current_year }} {{ t.footer_text }}</p>
+    </div>
+
+    <script src="/static/loader.js"></script>
+</body>
+
+</html>

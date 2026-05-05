@@ -1,0 +1,635 @@
+<!DOCTYPE html>
+<html lang="{{ session.get('lang', 'en') }}">
+
+<head>
+    <title>{{ t.pests_title }}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/static/style.css?v=2.0">
+    <link rel="stylesheet" href="/static/vendor/fontawesome/css/all.min.css">
+    <link rel="manifest" href="/static/manifest.json">
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/static/service-worker.js')
+                    .then(reg => console.log('SW registered!', reg.scope))
+                    .catch(err => console.log('SW failed:', err));
+            });
+        }
+    </script>
+
+    <style>
+        /* ========== PESTS PAGE - PREMIUM UI ========== */
+        body {
+            font-family: 'Outfit', sans-serif;
+        }
+
+        .pest-dashboard {
+            max-width: 1300px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+
+        /* Hero Action Bar */
+        .pest-action-bar {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            align-items: stretch;
+            margin-bottom: 35px;
+            background: linear-gradient(135deg, #ffffff 0%, #f8fdf8 100%);
+            padding: 20px;
+            border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.06);
+            border: 1px solid rgba(46, 125, 50, 0.1);
+        }
+
+        .crop-select-wrapper {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .crop-select-wrapper label {
+            display: block;
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 6px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .crop-select-wrapper select {
+            width: 100%;
+            padding: 14px 18px;
+            border: 2px solid rgba(46, 125, 50, 0.2);
+            border-radius: 12px;
+            font-size: 15px;
+            background: white;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-family: 'Outfit', sans-serif;
+        }
+
+        .crop-select-wrapper select:focus {
+            outline: none;
+            border-color: var(--accent-primary);
+            box-shadow: 0 0 0 4px rgba(46, 125, 50, 0.1);
+        }
+
+        .btn-search {
+            background: linear-gradient(135deg, #2E7D32, #43A047);
+            color: white;
+            border: none;
+            padding: 14px 28px;
+            border-radius: 12px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: all 0.3s;
+            box-shadow: 0 6px 20px rgba(46, 125, 50, 0.3);
+            align-self: flex-end;
+        }
+
+        .btn-search:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(46, 125, 50, 0.4);
+        }
+
+        .search-filter-box {
+            flex: 2;
+            min-width: 280px;
+        }
+
+        .search-filter-box label {
+            display: block;
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 6px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .search-filter-box input {
+            width: 100%;
+            padding: 14px 18px 14px 45px;
+            border: 2px solid rgba(0, 0, 0, 0.08);
+            border-radius: 12px;
+            font-size: 15px;
+            background: white url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='%23999' viewBox='0 0 24 24'%3E%3Cpath d='M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z'/%3E%3C/svg%3E") no-repeat 15px center;
+            background-size: 20px;
+            transition: all 0.3s;
+        }
+
+        .search-filter-box input:focus {
+            outline: none;
+            border-color: var(--accent-primary);
+            box-shadow: 0 0 0 4px rgba(46, 125, 50, 0.1);
+        }
+
+        /* AI Scan CTA - Floating Glass */
+        .ai-scan-cta {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: linear-gradient(135deg, #2E7D32, #1B5E20);
+            color: white;
+            padding: 16px 24px;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: 600;
+            box-shadow: 0 10px 40px rgba(46, 125, 50, 0.4);
+            transition: all 0.3s;
+            z-index: 100;
+        }
+
+        .ai-scan-cta:hover {
+            transform: scale(1.05);
+            box-shadow: 0 15px 50px rgba(46, 125, 50, 0.5);
+        }
+
+        .ai-scan-cta i {
+            font-size: 22px;
+        }
+
+        .ai-scan-cta .cta-text {
+            display: flex;
+            flex-direction: column;
+            line-height: 1.3;
+        }
+
+        .ai-scan-cta small {
+            font-size: 11px;
+            opacity: 0.8;
+            font-weight: normal;
+        }
+
+        /* Card Grid - Bento Style */
+        .pest-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+            gap: 25px;
+        }
+
+        .pest-card {
+            background: white;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.06);
+            border: 1px solid rgba(0, 0, 0, 0.04);
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            animation: cardSlideIn 0.6s ease backwards;
+        }
+
+        .pest-card:nth-child(1) {
+            animation-delay: 0.1s;
+        }
+
+        .pest-card:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .pest-card:nth-child(3) {
+            animation-delay: 0.3s;
+        }
+
+        .pest-card:nth-child(4) {
+            animation-delay: 0.4s;
+        }
+
+        .pest-card:hover {
+            transform: translateY(-8px) scale(1.02);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.12);
+        }
+
+        @keyframes cardSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(40px) scale(0.95);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        .pest-card-image {
+            height: 160px;
+            background: linear-gradient(135deg, #e8f5e9, #c8e6c9);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .pest-card-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            transition: transform 0.5s ease;
+        }
+
+        .pest-card-image .placeholder-icon {
+            font-size: 50px;
+            color: rgba(46, 125, 50, 0.3);
+        }
+
+        .pest-card-badge {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: #333;
+            color: white;
+            padding: 5px 12px;
+            border-radius: 50px;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+            z-index: 10;
+        }
+
+        .pest-card-badge.pest,
+        .pest-card-badge.disease {
+            background: #333;
+        }
+
+        /* === MOBILE OVERRIDES === */
+        @media (max-width: 768px) {
+            .pest-dashboard {
+                margin: 20px auto;
+            }
+
+            .pest-action-bar {
+                flex-direction: column;
+                /* Stack controls vertically */
+                padding: 15px;
+                gap: 12px;
+                border-radius: 16px;
+            }
+
+            .crop-select-wrapper,
+            .search-filter-box {
+                min-width: 100%;
+                /* Force full width within flex container */
+            }
+
+            .btn-search {
+                width: 100%;
+                /* Full width button */
+                justify-content: center;
+                align-self: flex-start;
+            }
+
+            .pest-grid {
+                grid-template-columns: 1fr;
+                /* 1 card per row */
+                gap: 20px;
+            }
+
+            .pest-card-image {
+                height: 140px;
+                /* Slightly shorter image area */
+            }
+
+            /* Adjust FAB */
+            .ai-scan-cta {
+                bottom: 20px;
+                right: 20px;
+                padding: 12px 20px;
+            }
+
+            .ai-scan-cta i {
+                font-size: 20px;
+            }
+
+            .ai-scan-cta .cta-text span {
+                font-size: 14px;
+            }
+        }
+
+        .pest-card-body {
+            padding: 22px;
+        }
+
+        .pest-card-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: #2E7D32;
+            margin-bottom: 18px;
+            display: block;
+        }
+
+        .pest-card-title::before {
+            display: none;
+        }
+
+        .pest-info-section {
+            margin-bottom: 12px;
+            padding: 0;
+            background: none;
+            border: none;
+        }
+
+        .pest-info-section.symptoms,
+        .pest-info-section.precautions,
+        .pest-info-section.solutions {
+            background: none;
+            border: none;
+        }
+
+        .pest-info-section strong {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            font-weight: 700;
+            margin-bottom: 4px;
+            text-transform: none;
+            letter-spacing: normal;
+        }
+
+        .pest-info-section.symptoms strong {
+            color: #d32f2f;
+        }
+
+        .pest-info-section.precautions strong {
+            color: #388e3c;
+        }
+
+        .pest-info-section.solutions strong {
+            color: #1976d2;
+        }
+
+        .pest-info-section p {
+            font-size: 13px;
+            color: #666;
+            line-height: 1.5;
+            margin: 0;
+            padding-left: 0;
+        }
+
+        .pest-info-section strong {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            font-weight: 700;
+            margin-bottom: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+
+        .pest-info-section.symptoms strong {
+            color: #c62828;
+        }
+
+        .pest-info-section.precautions strong {
+            color: #ef6c00;
+        }
+
+        .pest-info-section.solutions strong {
+            color: #2E7D32;
+        }
+
+        .pest-info-section p {
+            font-size: 14px;
+            color: #555;
+            line-height: 1.6;
+            margin: 0;
+        }
+
+        /* Empty States */
+        .empty-state {
+            text-align: center;
+            padding: 80px 20px;
+            background: linear-gradient(135deg, #f8fdf8, #e8f5e9);
+            border-radius: 24px;
+            border: 2px dashed rgba(46, 125, 50, 0.2);
+        }
+
+        .empty-state i {
+            font-size: 80px;
+            color: rgba(46, 125, 50, 0.2);
+            margin-bottom: 20px;
+        }
+
+        .empty-state h3 {
+            font-size: 24px;
+            color: #2E7D32;
+            margin-bottom: 10px;
+        }
+
+        .empty-state p {
+            color: #666;
+            font-size: 16px;
+        }
+
+        #noSearchResults {
+            display: none;
+        }
+
+        @media (max-width: 768px) {
+            .pest-action-bar {
+                flex-direction: column;
+            }
+
+            .ai-scan-cta {
+                bottom: 20px;
+                right: 20px;
+                padding: 14px 20px;
+            }
+
+            .pest-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Language Switcher -->
+    <div class="lang-float">
+        <form method="post" action="/set_language">
+            <select name="lang" onchange="this.form.submit()">
+                <option value="en" {% if session.lang=="en" %}selected{% endif %}>English</option>
+                <option value="ta" {% if session.lang=="ta" %}selected{% endif %}>தமிழ்</option>
+            </select>
+        </form>
+    </div>
+
+    <div class="page-header-card">
+        <i class="fas fa-bug"></i>
+        <h1>{{ t.pests_heading }}</h1>
+        <p>{{ t.pests_subtitle }}</p>
+
+        <!-- Header Navigation -->
+        <nav class="header-nav">
+            <a href="/" class="nav-link {{ 'active' if request.path == '/' }}">{{ t.home }}</a>
+
+            <div class="dropdown">
+                <button
+                    class="nav-link dropdown-toggle {{ 'active' if request.path in ['/chatbot', '/weather', '/guide', '/crop-prices', '/pests', '/calculator'] }}"
+                    style="background:none; border:none; display:flex; align-items:center;">
+                    {{ t.features }}
+                </button>
+                <div class="dropdown-menu">
+                    <a href="/chatbot" class="{{ 'active' if request.path == '/chatbot' }}">{{ t.chatbot }}</a>
+                    <a href="/weather" class="{{ 'active' if request.path == '/weather' }}">{{ t.weather }}</a>
+                    <a href="/guide" class="{{ 'active' if request.path == '/guide' }}">{{ t.guide }}</a>
+                    <a href="/crop-prices" class="{{ 'active' if request.path == '/crop-prices' }}">{{ t.prices }}</a>
+                    <a href="/pests" class="{{ 'active' if request.path == '/pests' }}">{{ t.pests }}</a>
+                    <a href="/calculator" class="{{ 'active' if request.path == '/calculator' }}">{{ t.calculator }}</a>
+                </div>
+            </div>
+
+            <a href="/feedback" class="nav-link {{ 'active' if request.path == '/feedback' }}">{{ t.feedback_link }}</a>
+
+            <a href="/about" class="nav-link {{ 'active' if request.path == '/about' }}">{{ t.about }}</a>
+        </nav>
+    </div>
+
+    <div class="page-wrapper">
+
+        <!-- ========== MAIN CONTENT (BELOW HEADER) ========== -->
+        <div class="pest-dashboard">
+
+            <!-- Action Bar -->
+            <div class="pest-action-bar">
+                <form method="post" style="display: contents;">
+                    <div class="crop-select-wrapper">
+                        <label>{{ t.pests_select_crop_title }}</label>
+                        <select name="crop" required>
+                            <option value="">{{ t.pests_crop_placeholder }}</option>
+                            {% for c in crops %}
+                            {% set crop_key = 'crop_' + c|lower|replace(' ', '') %}
+                            <option value="{{ c }}" {% if selected_crop==c %}selected{% endif %}>
+                                {{ t[crop_key] if t[crop_key] else c }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <button type="submit" class="btn-search">
+                        <i class="fas fa-search"></i> {{ t.pests_view_button }}
+                    </button>
+                </form>
+
+                <div class="search-filter-box">
+                    <label>{{ t.pests_search_placeholder|replace('...', '') }}</label>
+                    <input type="text" id="pestSearch" placeholder="{{ t.pests_search_placeholder }}"
+                        oninput="filterPests()">
+                </div>
+            </div>
+
+            <!-- Results Grid -->
+            {% if results %}
+            <div class="pest-grid" id="pestGrid">
+                {% for pest in results %}
+                <div class="pest-card" data-name="{{ pest[0]|lower }}">
+                    <div class="pest-card-image">
+                        {% if pest[5] %}
+                        <img src="/static/pests/{{ pest[5] }}" alt="{{ pest[0] }}"
+                            onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+                        <i class="fas fa-leaf placeholder-icon" style="display: none;"></i>
+                        {% else %}
+                        <i class="fas fa-leaf placeholder-icon"></i>
+                        {% endif %}
+                        <span class="pest-card-badge {{ pest[1]|lower }}">{{ pest[1] }}</span>
+                    </div>
+                    <div class="pest-card-body">
+                        <div class="pest-card-title">{{ pest[0] }}</div>
+
+                        <div class="pest-info-section symptoms">
+                            <strong><i class="fas fa-exclamation-triangle"></i> {{ t.pests_symptoms_label }}</strong>
+                            <p>{{ pest[2] }}</p>
+                        </div>
+
+                        <div class="pest-info-section precautions">
+                            <strong><i class="fas fa-shield-alt"></i> {{ t.pests_precautions_label }}</strong>
+                            <p>{{ pest[3] }}</p>
+                        </div>
+
+                        <div class="pest-info-section solutions">
+                            <strong><i class="fas fa-flask"></i> {{ t.pests_solutions_label }}</strong>
+                            <p>{{ pest[4] }}</p>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+
+            <div id="noSearchResults" class="empty-state">
+                <i class="fas fa-search"></i>
+                <h3>{{ t.pests_no_search_results }}</h3>
+            </div>
+
+            {% elif request.method == 'POST' %}
+            <div class="empty-state">
+                <i class="fas fa-leaf"></i>
+                <h3>{{ t.pests_no_data_title }}</h3>
+                <p>{{ t.pests_no_data_msg }}</p>
+            </div>
+            {% else %}
+            <!-- Initial State -->
+            <div class="empty-state">
+                <i class="fas fa-bug"></i>
+                <h3>{{ t.pests_select_crop_title }}</h3>
+                <p>{{ t.pests_subtitle }}</p>
+            </div>
+            {% endif %}
+
+        </div>
+        <!-- End Dashboard -->
+
+    </div>
+
+    <!-- Floating AI Scan CTA -->
+    <a href="/diagnose" class="ai-scan-cta" title="{{ t.pests_scan_cta }}">
+        <i class="fas fa-camera"></i>
+        <span class="cta-text">
+            {{ t.pests_scan_cta }}
+            <small>{{ t.pests_scan_cta_subtitle }}</small>
+        </span>
+    </a>
+
+    <!-- Footer -->
+    <div style="text-align: center; padding: 40px 20px; color: #999; font-size: 13px;">
+        <p>© {{ current_year }} {{ t.footer_text }}</p>
+    </div>
+
+    <script>
+        function filterPests() {
+            const query = document.getElementById('pestSearch').value.toLowerCase();
+            const cards = document.querySelectorAll('.pest-card');
+            let visibleCount = 0;
+
+            cards.forEach(card => {
+                const name = card.getAttribute('data-name');
+                const text = card.innerText.toLowerCase();
+                if (name.includes(query) || text.includes(query)) {
+                    card.style.display = 'block';
+                    visibleCount++;
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+
+            document.getElementById('noSearchResults').style.display = visibleCount === 0 ? 'block' : 'none';
+            document.getElementById('pestGrid').style.display = visibleCount === 0 ? 'none' : 'grid';
+        }
+    </script>
+
+    <script src="/static/loader.js"></script>
+</body>
+
+</html>

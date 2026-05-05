@@ -1,0 +1,780 @@
+<!DOCTYPE html>
+<html lang="{{ session.get('lang', 'en') }}">
+
+<head>
+    <title>{{ t.weather_title }}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/static/style.css?v=2.0">
+    <link rel="stylesheet" href="/static/vendor/fontawesome/css/all.min.css">
+    <link rel="manifest" href="/static/manifest.json">
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/static/service-worker.js')
+                    .then(reg => console.log('SW registered!', reg.scope))
+                    .catch(err => console.log('SW failed:', err));
+            });
+        }
+    </script>
+
+    <style>
+        :root {
+            --glass-bg: rgba(255, 255, 255, 0.65);
+            --glass-border: rgba(255, 255, 255, 0.8);
+            --glass-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.07);
+            --neon-green: #00acc1;
+            --deep-forest: #1b5e20;
+            --text-primary: #263238;
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif !important;
+            background: linear-gradient(120deg, #e0f7fa 0%, #f1f8e9 100%);
+            background-size: 400% 400%;
+            animation: gradientBG 15s ease infinite;
+        }
+
+        @keyframes gradientBG {
+            0% {
+                background-position: 0% 50%;
+            }
+
+            50% {
+                background-position: 100% 50%;
+            }
+
+            100% {
+                background-position: 0% 50%;
+            }
+        }
+
+        /* --- CONTROLS BAR (Floating) --- */
+        .controls-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: rgba(255, 255, 255, 0.75);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.8);
+            border-radius: 20px;
+            padding: 15px 25px;
+            margin-bottom: 40px;
+            box-shadow: var(--glass-shadow);
+            animation: slideDown 0.8s cubic-bezier(0.2, 0.8, 0.2, 1);
+            position: relative;
+            z-index: 50;
+        }
+
+        .location-group {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            width: 100%;
+        }
+
+        .location-icon-box {
+            width: 45px;
+            height: 45px;
+            background: linear-gradient(135deg, #43a047, #66bb6a);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 20px;
+            box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
+        }
+
+        .custom-select-wrapper {
+            position: relative;
+            flex-grow: 1;
+        }
+
+        select#districtSelect {
+            appearance: none;
+            width: 100%;
+            background: transparent;
+            border: none;
+            font-family: 'Outfit', sans-serif;
+            font-size: 22px;
+            font-weight: 700;
+            color: var(--deep-forest);
+            cursor: pointer;
+            outline: none;
+            padding-right: 30px;
+        }
+
+        .gps-btn-modern {
+            background: linear-gradient(135deg, #26c6da, #00acc1);
+            color: white;
+            border: none;
+            width: 50px;
+            height: 50px;
+            border-radius: 16px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 20px rgba(0, 172, 193, 0.3);
+        }
+
+        .gps-btn-modern:hover {
+            transform: scale(1.05) rotate(15deg);
+            box-shadow: 0 8px 25px rgba(0, 172, 193, 0.4);
+        }
+
+        /* --- WEATHER HERO CARD --- */
+        .weather-hero-modern {
+            background: rgba(255, 255, 255, 0.65);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            border-radius: 30px;
+            padding: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 30px;
+            box-shadow: var(--glass-shadow);
+            position: relative;
+            overflow: hidden;
+            animation: fadeUp 1s ease 0.2s backwards;
+        }
+
+        /* Ambient Glow behind Hero */
+        .weather-hero-modern::before {
+            content: '';
+            position: absolute;
+            top: -50px;
+            right: -50px;
+            width: 200px;
+            height: 200px;
+            background: radial-gradient(circle, rgba(76, 175, 80, 0.2) 0%, transparent 70%);
+            filter: blur(40px);
+            z-index: -1;
+        }
+
+        .hero-info .live-badge {
+            background: rgba(76, 175, 80, 0.1);
+            color: #2e7d32;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            border: 1px solid rgba(76, 175, 80, 0.2);
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            margin-bottom: 15px;
+        }
+
+        .hero-info .live-badge::before {
+            content: '';
+            width: 8px;
+            height: 8px;
+            background: #4caf50;
+            border-radius: 50%;
+            display: block;
+            box-shadow: 0 0 0 rgba(76, 175, 80, 0.4);
+            animation: pulse-green 2s infinite;
+        }
+
+        .big-temp {
+            font-size: 96px;
+            font-weight: 800;
+            color: var(--text-primary);
+            letter-spacing: -2px;
+            line-height: 1;
+            background: -webkit-linear-gradient(45deg, #1b5e20, #43a047);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .weather-status {
+            font-size: 32px;
+            font-weight: 500;
+            color: #546e7a;
+            margin-top: 5px;
+        }
+
+        .hero-icon-wrapper img {
+            width: 200px;
+            filter: drop-shadow(0 15px 30px rgba(0, 0, 0, 0.15));
+            animation: float 6s ease-in-out infinite;
+        }
+
+        /* --- METRIC GRID 2.0 --- */
+        .grid-modern {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 25px;
+            margin-bottom: 40px;
+        }
+
+        .metric-card-glass {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(15px);
+            border-radius: 24px;
+            padding: 25px;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+            transition: all 0.3s ease;
+            animation: fadeUp 0.8s ease backwards;
+        }
+
+        .metric-card-glass:nth-child(1) {
+            animation-delay: 0.3s;
+        }
+
+        .metric-card-glass:nth-child(2) {
+            animation-delay: 0.4s;
+        }
+
+        .metric-card-glass:nth-child(3) {
+            animation-delay: 0.5s;
+        }
+
+        .metric-card-glass:hover {
+            transform: translateY(-8px);
+            background: rgba(255, 255, 255, 0.9);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.08);
+        }
+
+        .m-icon {
+            font-size: 28px;
+            color: #00acc1;
+            margin-bottom: 12px;
+            display: inline-block;
+        }
+
+        .m-value {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--deep-forest);
+            display: block;
+        }
+
+        .m-label {
+            font-size: 13px;
+            color: #78909c;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 600;
+        }
+
+        /* --- FORECAST RAIL --- */
+        .forecast-rail {
+            display: flex;
+            gap: 20px;
+            overflow-x: auto;
+            padding-bottom: 30px;
+            padding-top: 10px;
+            scrollbar-width: none;
+            /* Firefox */
+        }
+
+        .forecast-rail::-webkit-scrollbar {
+            display: none;
+        }
+
+        .forecast-pill {
+            min-width: 140px;
+            background: rgba(255, 255, 255, 0.6);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            border: 1px solid rgba(255, 255, 255, 0.45);
+            transition: all 0.3s;
+        }
+
+        .forecast-pill:hover {
+            background: rgba(255, 255, 255, 0.9);
+            transform: scale(1.05);
+            box-shadow: var(--glass-shadow);
+        }
+
+        /* --- ALERT BOX MODERN --- */
+        .alert-modern {
+            background: linear-gradient(90deg, #fff9c4 0%, rgba(255, 255, 255, 0.8) 100%);
+            border-left: 5px solid #fbc02d;
+            border-radius: 16px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 15px rgba(251, 192, 45, 0.15);
+            display: flex;
+            gap: 20px;
+            align-items: flex-start;
+            animation: slideInRight 0.8s ease backwards;
+        }
+
+        .alert-icon {
+            background: #fff59d;
+            width: 40px;
+            height: 40px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #f57f17;
+            font-size: 18px;
+            flex-shrink: 0;
+        }
+
+        /* Animations */
+        @keyframes float {
+            0% {
+                transform: translateY(0px);
+            }
+
+            50% {
+                transform: translateY(-15px);
+            }
+
+            100% {
+                transform: translateY(0px);
+            }
+        }
+
+        @keyframes pulse-green {
+            0% {
+                box-shadow: 0 0 0 0 rgba(76, 175, 80, 0.4);
+            }
+
+            70% {
+                box-shadow: 0 0 0 10px rgba(76, 175, 80, 0);
+            }
+
+            100% {
+                box-shadow: 0 0 0 0 rgba(76, 175, 80, 0);
+            }
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes slideInRight {
+            from {
+                opacity: 0;
+                transform: translateX(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        /* === MOBILE ONLY OVERRIDES === */
+        @media (max-width: 768px) {
+
+            /* Compact Header */
+            .page-header-card {
+                padding: 30px 15px 20px !important;
+                margin-bottom: 20px !important;
+                border-radius: 0 0 18px 18px !important;
+            }
+
+            .page-header-card i {
+                font-size: 30px !important;
+                margin-bottom: 8px !important;
+            }
+
+            .page-header-card h1 {
+                font-size: 22px !important;
+                margin-bottom: 4px !important;
+            }
+
+            /* Location Selector Form */
+            .controls-bar {
+                padding: 10px 15px !important;
+                border-radius: 16px !important;
+            }
+
+            .location-group {
+                gap: 10px !important;
+            }
+
+            .location-icon-box {
+                width: 35px !important;
+                height: 35px !important;
+                font-size: 16px !important;
+                border-radius: 10px !important;
+            }
+
+            select#districtSelect {
+                font-size: 16px !important;
+                padding-right: 20px !important;
+            }
+
+            .gps-btn-modern {
+                width: 40px !important;
+                height: 40px !important;
+                font-size: 18px !important;
+                border-radius: 12px !important;
+            }
+
+            /* Weather Hero Card */
+            .weather-hero-modern {
+                padding: 30px 20px !important;
+                border-radius: 20px !important;
+            }
+
+            .big-temp {
+                font-size: 64px !important;
+            }
+
+            .weather-status {
+                font-size: 20px !important;
+            }
+
+            .hero-icon-wrapper img {
+                width: 120px !important;
+                position: absolute;
+                right: -10px;
+                top: 50%;
+                transform: translateY(-50%);
+                animation: none !important;
+                /* prevent animation clipping */
+            }
+
+            /* Metrics Grid */
+            .grid-modern {
+                gap: 10px !important;
+            }
+
+            .metric-card-glass {
+                padding: 15px 10px !important;
+                border-radius: 16px !important;
+            }
+
+            .m-icon {
+                font-size: 20px !important;
+                margin-bottom: 8px !important;
+            }
+
+            .m-value {
+                font-size: 18px !important;
+            }
+
+            .m-label {
+                font-size: 10px !important;
+            }
+
+            /* Forecast Rail */
+            .forecast-rail {
+                gap: 12px !important;
+                padding-bottom: 15px !important;
+            }
+
+            .forecast-pill {
+                min-width: 110px !important;
+                padding: 15px 10px !important;
+                border-radius: 16px !important;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Language Switcher -->
+    <div class="lang-float">
+        <form method="post" action="/set_language">
+            <select name="lang" onchange="this.form.submit()">
+                <option value="en" {% if session.lang=="en" %}selected{% endif %}>English</option>
+                <option value="ta" {% if session.lang=="ta" %}selected{% endif %}>தமிழ்</option>
+            </select>
+        </form>
+    </div>
+
+
+    <!-- Header Card -->
+    <div class="page-header-card">
+        <i class="fas fa-cloud-sun"></i>
+        <h1>{{ t.weather_title }}</h1>
+        <p>{{ t.weather_subtitle }}</p>
+
+        <!-- Header Navigation -->
+        <nav class="header-nav">
+            <a href="/" class="nav-link {{ 'active' if request.path == '/' }}">{{ t.home }}</a>
+
+            <div class="dropdown">
+                <button
+                    class="nav-link dropdown-toggle {{ 'active' if request.path in ['/chatbot', '/weather', '/guide', '/crop-prices', '/pests', '/calculator'] }}"
+                    style="background:none; border:none; display:flex; align-items:center;">
+                    {{ t.features }}
+                </button>
+                <div class="dropdown-menu">
+                    <a href="/chatbot" class="{{ 'active' if request.path == '/chatbot' }}">{{ t.chatbot }}</a>
+                    <a href="/weather" class="{{ 'active' if request.path == '/weather' }}">{{ t.weather }}</a>
+                    <a href="/guide" class="{{ 'active' if request.path == '/guide' }}">{{ t.guide }}</a>
+                    <a href="/crop-prices" class="{{ 'active' if request.path == '/crop-prices' }}">{{ t.prices }}</a>
+                    <a href="/pests" class="{{ 'active' if request.path == '/pests' }}">{{ t.pests }}</a>
+                    <a href="/calculator" class="{{ 'active' if request.path == '/calculator' }}">{{ t.calculator }}</a>
+                </div>
+            </div>
+
+            <a href="/feedback" class="nav-link {{ 'active' if request.path == '/feedback' }}">{{ t.feedback_link }}</a>
+
+            <a href="/about" class="nav-link {{ 'active' if request.path == '/about' }}">{{ t.about }}</a>
+        </nav>
+    </div>
+
+    <div class="page-wrapper">
+
+        <!-- District Selector -->
+        <!-- NEW CONTROLS BAR -->
+        <div class="controls-bar">
+            <form method="post" action="/weather" id="weatherForm" class="no-loader" onsubmit="showWeatherLoader()"
+                style="width: 100%; display: flex; align-items: center; justify-content: space-between;">
+                <div class="location-group">
+                    <div class="location-icon-box">
+                        <i class="fas fa-map-marker-alt"></i>
+                    </div>
+                    <div class="custom-select-wrapper">
+                        <label style="font-size: 11px; color: #78909c; margin-bottom: 2px;">{{
+                            t.weather_selected_location }}</label>
+                        <select name="district" id="districtSelect" onchange="submitWeatherWithLoader(this)">
+                            <option value="" disabled {% if not result %}selected{% endif %}>{{ t.weather_select_title
+                                }}</option>
+                            {% for district in districts %}
+                            <option value="{{ district[0] }}" {% if result and result.selected_district==district[0]
+                                %}selected{% endif %}>
+                                {% if session.lang == 'ta' %}{{ district[1] }}{% else %}{{ district[0] }}{% endif %}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+
+                <!-- GPS Button -->
+                <button type="button" class="gps-btn-modern" onclick="locateUser()" title="{{ t.weather_locate_me }}">
+                    <i class="fas fa-crosshairs" id="gpsIcon"></i>
+                </button>
+            </form>
+        </div>
+
+        {% if result and result.weather and not result.error %}
+
+        <!-- NEW MODERN HERO -->
+        <div class="weather-hero-modern">
+            <div class="hero-info">
+                <span class="live-badge">{{ t.weather_live_update }}</span>
+                <div class="m-label" style="opacity: 0.6; margin-bottom: 5px;">{{ result.district_ta if
+                    session.lang=='ta' else result.district_en }}</div>
+                <div class="big-temp">{{ result.weather.main.temp|round|int }}°</div>
+                <div class="weather-status">{{ result.weather.weather[0].description|title }}</div>
+            </div>
+            <div class="hero-icon-wrapper">
+                <img src="http://openweathermap.org/img/wn/{{ result.weather.weather[0].icon }}@4x.png" alt="icon">
+            </div>
+        </div>
+
+        <!-- NEW METRIC GRID -->
+        <div class="grid-modern">
+            <div class="metric-card-glass">
+                <i class="fas fa-tint m-icon"></i>
+                <span class="m-value">{{ result.weather.main.humidity }}%</span>
+                <span class="m-label">{{ t.humidity }}</span>
+            </div>
+            <div class="metric-card-glass">
+                <i class="fas fa-wind m-icon"></i>
+                <span class="m-value">{{ result.weather.wind.speed }}</span>
+                <span class="m-label">{{ t.wind_speed }} (m/s)</span>
+            </div>
+            <div class="metric-card-glass">
+                <i class="fas fa-tachometer-alt m-icon"></i>
+                <span class="m-value">{{ result.weather.main.pressure }}</span>
+                <span class="m-label">{{ t.pressure }}</span>
+            </div>
+        </div>
+
+        <!-- Forecast -->
+        <!-- NEW FORECAST -->
+        <h3
+            style="margin-bottom: 25px; font-weight: 700; color: var(--text-primary); padding-left: 10px; border-left: 4px solid var(--accent-secondary);">
+            {{ t.forecast }}</h3>
+        <div class="forecast-rail">
+            {% for item in result.forecast.list[:5] %}
+            <div class="forecast-pill">
+                <span style="font-size: 13px; color: var(--text-muted); font-weight: 600;">{{ item.dt_txt[:10] }}</span>
+                <img src="http://openweathermap.org/img/wn/{{ item.weather[0].icon }}.png" alt="icon"
+                    style="width: 50px; margin: 5px 0;">
+                <span style="font-size: 24px; font-weight: 700; color: var(--deep-forest);">{{ item.main.temp|round|int
+                    }}°</span>
+                <span style="font-size: 12px; color: #78909c;">{{ item.weather[0].description }}</span>
+            </div>
+            {% endfor %}
+        </div>
+
+        <br>
+
+        <!-- NEW ADVISORIES -->
+        <h3
+            style="margin-bottom: 25px; font-weight: 700; color: var(--text-primary); padding-left: 10px; border-left: 4px solid #fbc02d;">
+            {{ t.advisories }}</h3>
+        {% for advisory in result.advisories %}
+        <div class="alert-modern">
+            <div class="alert-icon"><i class="fas fa-leaf"></i></div>
+            <div>
+                <h4 style="color: #f9a825; margin-bottom: 8px; font-weight: 700;">{{ t.weather_advisory_label }}</h4>
+                <p style="color: var(--text-primary); font-size: 15px; line-height: 1.6;">{% if session.lang == 'ta'
+                    %}{{ advisory.ta }}{% else %}{{ advisory.en }}{% endif %}</p>
+            </div>
+        </div>
+        {% endfor %}
+
+        {% endif %}
+
+
+
+        {% if result and result.error %}
+        <!-- Premium Error State -->
+        <div
+            style="text-align: center; padding: 60px 20px; background: rgba(255,255,255,0.8); border-radius: 30px; border: 1px solid rgba(255,255,255,0.6); box-shadow: 0 10px 40px rgba(0,0,0,0.05); margin-top: 20px; animation: fadeUp 0.6s ease;">
+            <div
+                style="width: 120px; height: 120px; background: #ffebee; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 25px; box-shadow: 0 10px 20px rgba(244, 67, 54, 0.15);">
+                <i class="fas fa-wifi" style="font-size: 50px; color: #ef5350;"></i>
+                <i class="fas fa-exclamation"
+                    style="font-size: 24px; color: #c62828; margin-left: -10px; margin-top: -20px;"></i>
+            </div>
+
+            <h3 style="font-size: 24px; font-weight: 800; color: #c62828; margin-bottom: 10px;">{{ t.weather_error_title
+                }}</h3>
+            <p
+                style="font-size: 16px; color: #555; margin-bottom: 30px; max-width: 400px; margin-left: auto; margin-right: auto; line-height: 1.6;">
+                {{ result.error }}
+            </p>
+
+            <button onclick="window.location.reload()"
+                style="background: linear-gradient(135deg, #ef5350, #c62828); color: white; border: none; padding: 14px 32px; border-radius: 50px; font-size: 16px; font-weight: 600; cursor: pointer; box-shadow: 0 8px 15px rgba(198, 40, 40, 0.3); transition: transform 0.2s;">
+                <i class="fas fa-redo-alt" style="margin-right: 8px;"></i> {{ t.weather_retry }}
+            </button>
+        </div>
+        {% endif %}
+
+        <!-- Floating Dock -->
+        <!-- Dock Removed -->
+
+        <!-- Footer -->
+        <div style="text-align: center; padding: 40px 20px; color: #999; font-size: 13px;">
+            <p>© {{ current_year }} {{ t.footer_text }}</p>
+        </div>
+
+        <script>
+            // District Data passed from Flask
+            const districtsData = JSON.parse('{{ districts_data | tojson | safe }}');
+
+            function locateUser() {
+                const btn = document.querySelector('button[onclick="locateUser()"]');
+                const icon = document.getElementById('gpsIcon');
+
+                if (!navigator.geolocation) {
+                    alert("Geolocation is not supported by your browser");
+                    return;
+                }
+
+                // Visual Feedback
+                icon.className = "fas fa-spinner fa-spin";
+                btn.style.background = "#e0e0e0";
+
+                navigator.geolocation.getCurrentPosition(success, error);
+
+                function success(position) {
+                    const lat = position.coords.latitude;
+                    const lon = position.coords.longitude;
+
+                    // Find nearest district
+                    let minDiff = Infinity;
+                    let nearest = null;
+
+                    districtsData.forEach(d => {
+                        // Simple Euclidean distance (sufficient for this scale)
+                        // For higher precision, Haversine formula can be used, but this is okay for finding nearest point vs very far points
+                        const diff = Math.sqrt(Math.pow(d.lat - lat, 2) + Math.pow(d.lon - lon, 2));
+                        if (diff < minDiff) {
+                            minDiff = diff;
+                            nearest = d.name;
+                        }
+                    });
+
+                    if (nearest) {
+                        const select = document.getElementById('districtSelect');
+                        select.value = nearest;
+                        // Auto submit
+                        select.form.submit();
+                    } else {
+                        alert("Could not find a nearby district supported by the system.");
+                        resetIcon();
+                    }
+                }
+
+                function error() {
+                    alert("Unable to retrieve your location. Please check browser permissions.");
+                    resetIcon();
+                }
+
+                function resetIcon() {
+                    icon.className = "fas fa-crosshairs";
+                    btn.style.background = "var(--accent-secondary)";
+                }
+            }
+        </script>
+        <script src="/static/loader.js"></script>
+
+        <!-- Weather Loader (Moved to root for proper overlay) -->
+        <div class="weather-loader" id="weatherLoader">
+            <div class="satellite-scene">
+                <i class="fas fa-satellite w-satellite"></i>
+                <i class="fas fa-wifi w-signal"></i>
+                <i class="fas fa-wifi w-signal"></i>
+                <i class="fas fa-wifi w-signal"></i>
+                <i class="fas fa-cloud w-cloud"></i>
+            </div>
+
+            <h3>{{ t.weather_loading_title }}</h3>
+            <p>{{ t.weather_loading_subtitle }}</p>
+        </div>
+
+        <script>
+            function showWeatherLoader() {
+                document.getElementById('weatherLoader').classList.add('active');
+
+                // Hide nav and language switcher to prevent overlap
+                const nav = document.querySelector('.header-nav');
+                const lang = document.querySelector('.lang-float');
+
+                if (nav) nav.style.opacity = '0';
+                if (lang) lang.style.opacity = '0';
+            }
+
+            function submitWeatherWithLoader(selectElement) {
+                showWeatherLoader();
+                // seep small delay to ensure render
+                setTimeout(() => {
+                    document.getElementById('weatherForm').submit();
+                }, 100);
+            }
+        </script>
+</body>
+
+</html>

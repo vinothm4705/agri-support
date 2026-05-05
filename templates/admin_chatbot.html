@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="{{ session.get('lang', 'en') }}">
+
+<head>
+    <title>Chatbot Brain | Agri-Admin</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/static/style.css?v=3.0">
+    <link rel="stylesheet" href="/static/vendor/fontawesome/css/all.min.css">
+    
+</head>
+
+<body class="admin-layout">
+
+    <aside class="admin-sidebar">
+        <div class="sidebar-logo">
+            <i class="fas fa-seedling"></i> Agri-Admin
+        </div>
+        <ul class="sidebar-menu">
+            <li class="sidebar-item"><a href="/admin" class="sidebar-link"><i class="fas fa-th-large"></i> {{
+                    t.admin_nav_dashboard }}</a></li>
+            <li class="sidebar-item"><a href="/admin/chatbot" class="sidebar-link active"><i class="fas fa-robot"></i>
+                    {{ t.admin_nav_chatbot }}</a></li>
+            <li class="sidebar-item"><a href="/admin/guide" class="sidebar-link"><i class="fas fa-book"></i> {{
+                    t.admin_nav_guide }}</a></li>
+            <li class="sidebar-item"><a href="/admin/pests" class="sidebar-link"><i class="fas fa-bug"></i> {{
+                    t.admin_nav_pests }}</a></li>
+            <li class="sidebar-item"><a href="/admin/prices" class="sidebar-link"><i class="fas fa-chart-line"></i> {{
+                    t.admin_nav_prices }}</a></li>
+            <li class="sidebar-item" style="margin-top: auto;"><a href="/" class="sidebar-link"><i
+                        class="fas fa-globe"></i> {{ t.admin_nav_site }}</a></li>
+        </ul>
+        <a href="/logout" class="sidebar-link" style="color: #ff6b6b; margin-top: 20px;"><i
+                class="fas fa-sign-out-alt"></i> {{ t.logout }}</a>
+    </aside>
+
+    <main class="admin-main">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
+            <div>
+                <h1 style="font-size: 28px; color: #1a1a1a; margin: 0;">{{ t.admin_nav_chatbot }}</h1>
+                <p style="color: #666; margin: 5px 0 0;">Manage Q&A pairs for the AI assistant.</p>
+            </div>
+        </div>
+
+        <div class="bento-grid" style="grid-template-columns: 1fr 2fr;">
+
+            <!-- ADD Q&A FORM -->
+            <div class="bento-item" style="background: white; border: none; box-shadow: 0 10px 40px rgba(0,0,0,0.05);">
+                <h3><i class="fas fa-brain" style="color: var(--accent-primary);"></i> Train New Data</h3>
+                <form method="post" style="margin-top: 20px;">
+
+                    <div style="margin-bottom: 15px;">
+                        <label
+                            style="display: block; margin-bottom: 8px; font-weight: 500; font-size: 14px; color: #555;">Keywords
+                            (English)</label>
+                        <input type="text" name="keyword_en" class="admin-input"
+                            style="background: #f4f6f8; color: #333; border-color: #ddd;"
+                            placeholder="e.g. rice season, paddy time" required>
+                    </div>
+
+                    <div style="margin-bottom: 15px;">
+                        <label
+                            style="display: block; margin-bottom: 8px; font-weight: 500; font-size: 14px; color: #555;">Keywords
+                            (Tamil)</label>
+                        <input type="text" name="keyword_ta" class="admin-input"
+                            style="background: #f4f6f8; color: #333; border-color: #ddd;" placeholder="e.g. நெல் பருவம்"
+                            required>
+                    </div>
+
+                    <div style="margin-bottom: 15px;">
+                        <label
+                            style="display: block; margin-bottom: 8px; font-weight: 500; font-size: 14px; color: #555;">Answer
+                            (English)</label>
+                        <textarea name="answer_en" class="admin-input"
+                            style="background: #f4f6f8; color: #333; border-color: #ddd; min-height: 100px;"
+                            required></textarea>
+                    </div>
+
+                    <div style="margin-bottom: 20px;">
+                        <label
+                            style="display: block; margin-bottom: 8px; font-weight: 500; font-size: 14px; color: #555;">Answer
+                            (Tamil)</label>
+                        <textarea name="answer_ta" class="admin-input"
+                            style="background: #f4f6f8; color: #333; border-color: #ddd; min-height: 100px;"
+                            required></textarea>
+                    </div>
+
+                    <button type="submit" class="btn-primary"
+                        style="width: 100%; border-radius: 12px; font-size: 16px;">
+                        Add Validation <i class="fas fa-plus"></i>
+                    </button>
+                </form>
+            </div>
+
+            <!-- Q&A TABLE -->
+            <div class="bento-item wide"
+                style="background: white; border: none; box-shadow: 0 10px 40px rgba(0,0,0,0.05);">
+                <h3><i class="fas fa-list" style="color: #4fc3f7;"></i> Knowledge Base</h3>
+
+                {% if qa_pairs %}
+                <div style="overflow-x: auto; margin-top: 20px;">
+                    <table style="width: 100%; border-collapse: collapse;">
+                        <thead>
+                            <tr
+                                style="background: #f9f9f9; text-transform: uppercase; font-size: 12px; letter-spacing: 1px; color: #888;">
+                                <th style="padding: 15px; text-align: left;">Keywords (EN)</th>
+                                <th style="padding: 15px; text-align: left;">Answer (EN)</th>
+                                <th style="padding: 15px; text-align: right;">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for qa in qa_pairs %}
+                            <tr style="border-bottom: 1px solid #eee;">
+                                <td style="padding: 15px; font-weight: 500; font-size: 13px;">{{ qa[1] }}</td>
+                                <td style="padding: 15px; color: #555; font-size: 14px;">{{ qa[3] }}</td>
+                                <td style="padding: 15px; text-align: right;">
+                                    <form method="post" action="/delete_chatbot_qa/{{ qa[0] }}"
+                                        onsubmit="return confirm('Delete this rule?');" style="display:inline;">
+                                        <button type="submit"
+                                            style="background: none; border: none; color: #ff6b6b; cursor: pointer; padding: 5px;">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div style="text-align: center; padding: 60px 20px; color: #999;">
+                    <i class="fas fa-hdd" style="font-size: 40px; color: #eee; margin-bottom: 15px;"></i>
+                    <p>No knowledge base rules found.</p>
+                </div>
+                {% endif %}
+            </div>
+
+        </div>
+
+        </div>
+
+        <div style="text-align: center; margin-top: 50px; color: #aaa; font-size: 13px;">
+            <p>&copy; {{ current_year }} Agri-Admin System</p>
+        </div>
+    </main>
+    <script src="/static/loader.js"></script>
+</body>
+
+</html>

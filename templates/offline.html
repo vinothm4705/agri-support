@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="{{ session.get('lang', 'en') }}">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ t.offline_title if t.offline_title else 'You are Offline' }}</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <link rel="stylesheet" href="/static/vendor/fontawesome/css/all.min.css">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            background: var(--bg-deep);
+            background-image: var(--bg-gradient);
+            font-family: var(--font-body);
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-main);
+        }
+
+        .offline-card {
+            background: var(--glass-surface);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            padding: 50px 40px;
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-float);
+            border: 1px solid var(--glass-border);
+            text-align: center;
+            max-width: 90%;
+            width: 420px;
+            position: relative;
+            z-index: 10;
+            animation: cardEntrance 0.8s cubic-bezier(0.2, 0.8, 0.2, 1);
+        }
+
+        /* --- LEAFY WIFI ANIMATION --- */
+        .icon-container {
+            width: 120px;
+            height: 120px;
+            margin: 0 auto 30px;
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: flex-end;
+        }
+
+        .wifi-stem {
+            fill: none;
+            stroke: var(--accent-primary);
+            stroke-width: 6;
+            stroke-linecap: round;
+            opacity: 0.3;
+        }
+
+        .wifi-arc {
+            fill: none;
+            stroke: var(--accent-primary);
+            stroke-width: 6;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            opacity: 0;
+            transform-origin: center bottom;
+            animation: signalPulse 3s infinite;
+        }
+
+        .wifi-arc-1 {
+            animation-delay: 0.5s;
+        }
+
+        .wifi-arc-2 {
+            animation-delay: 1.0s;
+        }
+
+        .wifi-arc-3 {
+            animation-delay: 1.5s;
+        }
+
+        .leaf-accent {
+            fill: var(--accent-secondary);
+            transform-origin: bottom left;
+            animation: leafSway 3s ease-in-out infinite alternate;
+        }
+
+        .disconnect-line {
+            stroke: var(--accent-danger);
+            stroke-width: 6;
+            stroke-linecap: round;
+            stroke-dasharray: 100;
+            stroke-dashoffset: 100;
+            animation: drawLine 3s ease-out infinite;
+            animation-delay: 2s;
+            opacity: 0;
+        }
+
+        @keyframes signalPulse {
+            0% {
+                opacity: 0;
+                transform: scale(0.9);
+            }
+
+            20% {
+                opacity: 1;
+                transform: scale(1);
+            }
+
+            50% {
+                opacity: 1;
+                transform: scale(1);
+            }
+
+            100% {
+                opacity: 0;
+                transform: scale(1.1);
+            }
+        }
+
+        @keyframes leafSway {
+            0% {
+                transform: rotate(-5deg);
+            }
+
+            100% {
+                transform: rotate(5deg);
+            }
+        }
+
+        @keyframes drawLine {
+            0% {
+                stroke-dashoffset: 100;
+                opacity: 1;
+            }
+
+            50% {
+                stroke-dashoffset: 0;
+                opacity: 1;
+            }
+
+            80% {
+                stroke-dashoffset: 0;
+                opacity: 0;
+            }
+
+            100% {
+                stroke-dashoffset: 0;
+                opacity: 0;
+            }
+        }
+
+        .offline-title {
+            font-family: var(--font-heading);
+            font-size: 26px;
+            font-weight: 700;
+            color: var(--text-main);
+            margin: 0 0 10px 0;
+        }
+
+        .offline-text {
+            color: var(--text-muted);
+            font-size: 16px;
+            margin-bottom: 30px;
+            line-height: 1.5;
+        }
+
+        .action-btn {
+            background: var(--accent-primary);
+            color: white;
+            border: none;
+            padding: 12px 28px;
+            border-radius: var(--radius-full);
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(46, 125, 50, 0.3);
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-family: var(--font-body);
+        }
+
+        .action-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(46, 125, 50, 0.4);
+            background: var(--accent-secondary);
+        }
+
+        .action-btn.secondary {
+            background: transparent;
+            color: var(--accent-primary);
+            box-shadow: none;
+            border: 1px solid var(--accent-primary);
+            margin-left: 10px;
+        }
+
+        .action-btn.secondary:hover {
+            background: rgba(46, 125, 50, 0.1);
+        }
+
+        @keyframes cardEntrance {
+            0% {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+
+            100% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="offline-card">
+
+        <!-- Premium Leafy Wifi Animation -->
+        <div class="icon-container">
+            <svg viewBox="0 0 100 100" width="100%" height="100%">
+                <!-- Center Seed/Dot -->
+                <circle cx="50" cy="85" r="5" fill="var(--accent-primary)" />
+
+                <!-- Leaves acting as Wifi Arcs -->
+                <!-- Small Arc -->
+                <path class="wifi-arc wifi-arc-1" d="M40,75 Q50,65 60,75" />
+                <!-- Medium Arc with Leaf -->
+                <path class="wifi-arc wifi-arc-2" d="M30,65 Q50,45 70,65" />
+                <path class="leaf-accent" d="M70,65 Q75,55 85,60 Q80,70 70,65" style="animation-delay: 1s;" />
+
+                <!-- Large Arc -->
+                <path class="wifi-arc wifi-arc-3" d="M20,55 Q50,25 80,55" />
+                <path class="leaf-accent" d="M20,55 Q15,45 5,50 Q10,60 20,55"
+                    style="animation-delay: 1.5s; transform-origin: top right;" />
+
+                <!-- Disconnect Slash -->
+                <line x1="20" y1="20" x2="80" y2="80" class="disconnect-line" />
+            </svg>
+        </div>
+
+        <h1 class="offline-title">
+            {{ t.offline_title if t.offline_title else 'No Connection' }}
+        </h1>
+
+        <p class="offline-text">
+            {{ t.offline_msg if t.offline_msg else 'Trying to connect to the field...' }}
+        </p>
+
+        <div style="display: flex; justify-content: center;">
+            <button onclick="window.location.reload()" class="action-btn">
+                <i class="fas fa-redo-alt"></i>
+                {{ t.weather_retry if t.weather_retry else 'Retry' }}
+            </button>
+            <a href="/" class="action-btn secondary">
+                <i class="fas fa-home"></i>
+                {{ t.home if t.home else 'Home' }}
+            </a>
+        </div>
+    </div>
+</body>
+
+</html>

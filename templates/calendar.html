@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="{{ session.get('lang', 'en') }}">
+
+<head>
+    <title>{{ t.season_calendar_title }} | {{ t.app_title }}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/static/style.css?v=2.0">
+    <link rel="stylesheet" href="/static/vendor/fontawesome/css/all.min.css">
+    <link rel="manifest" href="/static/manifest.json">
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/static/service-worker.js')
+                    .then(reg => console.log('SW registered!', reg.scope))
+                    .catch(err => console.log('SW failed:', err));
+            });
+        }
+    </script>
+    <style>
+        /* Calendar Specific Styles */
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 30px;
+            padding-bottom: 50px;
+            animation: fadeUp 0.8s ease backwards;
+            animation-delay: 0.2s;
+            margin-top: 30px;
+        }
+
+        .month-card {
+            background: white;
+            border-radius: 25px;
+            padding: 30px;
+            border: 1px solid #f0f0f0;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.03);
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .month-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.08);
+            border-color: rgba(46, 125, 50, 0.2);
+        }
+
+        /* Current Month Highlight */
+        .month-card.current {
+            border: 2px solid var(--accent-primary);
+            background: linear-gradient(135deg, #fff 0%, #f1f8e9 100%);
+            box-shadow: 0 10px 40px rgba(46, 125, 50, 0.15);
+        }
+
+        .month-card.current::before {
+            content: "{{ t.season_current_month }}";
+            position: absolute;
+            top: 0;
+            right: 0;
+            background: var(--accent-primary);
+            color: white;
+            padding: 6px 16px;
+            font-size: 11px;
+            text-transform: uppercase;
+            font-weight: 700;
+            border-bottom-left-radius: 18px;
+            letter-spacing: 0.5px;
+        }
+
+        .month-header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 25px;
+            border-bottom: 1px solid #f5f5f5;
+            padding-bottom: 20px;
+        }
+
+        .month-icon-box {
+            width: 50px;
+            height: 50px;
+            background: #f5f5f5;
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            color: #777;
+            transition: all 0.3s;
+        }
+
+        .month-card.current .month-icon-box {
+            background: rgba(46, 125, 50, 0.1);
+            color: var(--accent-primary);
+        }
+
+        .month-name {
+            font-size: 24px;
+            font-weight: 800;
+            color: #333;
+        }
+
+        .month-title-label {
+            font-size: 12px;
+            color: #999;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 700;
+        }
+
+        .month-advice {
+            background: #fff8e1;
+            color: #f57f17;
+            padding: 15px;
+            border-radius: 12px;
+            font-size: 14px;
+            margin-top: auto;
+            font-weight: 500;
+            line-height: 1.5;
+            display: flex;
+            gap: 10px;
+            align-items: flex-start;
+        }
+
+        .month-advice i {
+            margin-top: 3px;
+        }
+
+        .crop-list-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+
+        .crop-badge {
+            background: white;
+            color: var(--accent-primary);
+            padding: 8px 14px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+            border: 1px solid #c8e6c9;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.03);
+        }
+
+        /* Glossary Styles */
+        .season-glossary-section {
+            animation: fadeUp 1s ease backwards;
+            animation-delay: 0.4s;
+        }
+
+        .term-card {
+            transition: transform 0.2s;
+        }
+
+        .term-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Language Switcher (Standard) -->
+    <div class="lang-float">
+        <form method="post" action="/set_language">
+            <select name="lang" onchange="this.form.submit()">
+                <option value="en" {% if session.lang=="en" %}selected{% endif %}>English</option>
+                <option value="ta" {% if session.lang=="ta" %}selected{% endif %}>தமிழ்</option>
+            </select>
+        </form>
+    </div>
+
+    <!-- Header Card -->
+    <div class="page-header-card">
+        <i class="fas fa-calendar-alt"></i>
+        <h1>{{ t.calendar_page_title }}</h1>
+        <p>{{ t.calendar_page_desc }}</p>
+
+        <!-- Header Navigation -->
+        <nav class="header-nav">
+            <a href="/" class="nav-link {{ 'active' if request.path == '/' }}">{{ t.home }}</a>
+
+            <div class="dropdown">
+                <button
+                    class="nav-link dropdown-toggle {{ 'active' if request.path in ['/chatbot', '/weather', '/guide', '/crop-prices', '/pests', '/calculator'] }}"
+                    style="background:none; border:none; display:flex; align-items:center;">
+                    {{ t.features }}
+                </button>
+                <div class="dropdown-menu">
+                    <a href="/chatbot" class="{{ 'active' if request.path == '/chatbot' }}">{{ t.chatbot }}</a>
+                    <a href="/weather" class="{{ 'active' if request.path == '/weather' }}">{{ t.weather }}</a>
+                    <a href="/guide" class="{{ 'active' if request.path == '/guide' }}">{{ t.guide }}</a>
+                    <a href="/crop-prices" class="{{ 'active' if request.path == '/crop-prices' }}">{{ t.prices }}</a>
+                    <a href="/pests" class="{{ 'active' if request.path == '/pests' }}">{{ t.pests }}</a>
+                    <a href="/calculator" class="{{ 'active' if request.path == '/calculator' }}">{{ t.calculator }}</a>
+                </div>
+            </div>
+
+            <a href="/feedback" class="nav-link {{ 'active' if request.path == '/feedback' }}">{{ t.feedback_link }}</a>
+
+            <a href="/about" class="nav-link {{ 'active' if request.path == '/about' }}">{{ t.about }}</a>
+        </nav>
+    </div>
+
+    <!-- Main Content -->
+    <div class="page-wrapper">
+
+        <!-- Calendar Grid -->
+        <div class="calendar-grid">
+            {% for month in calendar %}
+            <div class="month-card {% if loop.index0 == current_month_idx %}current{% endif %}">
+                <div class="month-header">
+                    <div class="month-icon-box">
+                        <i class="far fa-calendar-alt"></i>
+                    </div>
+                    <div class="month-name">{{ month.month }}</div>
+                </div>
+
+                <div class="month-title-label">{{ t.season_recommended }}</div>
+                <div class="crop-list-grid">
+                    {% for crop in month.crops %}
+                    <span class="crop-badge">{{ crop }}</span>
+                    {% endfor %}
+                </div>
+
+                <div class="month-advice">
+                    <i class="fas fa-lightbulb"></i>
+                    <div>{{ month.advice }}</div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Season Glossary Section -->
+        <div class="season-glossary-section"
+            style="margin-top: 50px; background: white; padding: 40px; border-radius: 25px; box-shadow: 0 10px 40px rgba(0,0,0,0.05); border: 1px solid #f0f0f0;">
+            <h2 style="text-align: center; color: var(--accent-primary); margin-bottom: 30px; font-weight: 700;">
+                <i class="fas fa-book-reader"></i> {{ t.season_terms_title }}
+            </h2>
+
+            <div class="glossary-grid"
+                style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px;">
+                {% for term in t.season_terms %}
+                <div class="term-card"
+                    style="padding: 20px; background: #f8fcf8; border-radius: 15px; border-left: 4px solid var(--accent-primary);">
+                    <div
+                        style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px;">
+                        <div class="term-name" style="font-size: 18px; font-weight: 800; color: #2e7d32;">{{ term.name
+                            }}</div>
+                        <div class="term-duration"
+                            style="background: #e8f5e9; color: #1b5e20; padding: 4px 10px; border-radius: 10px; font-size: 12px; font-weight: 600;">
+                            {{ term.duration }}</div>
+                    </div>
+                    <div class="term-desc" style="font-size: 14px; color: #555; line-height: 1.5;">
+                        {{ term.desc }}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div style="text-align: center; margin-top: 40px; font-size: 13px; color: #888; font-style: italic;">
+            {{ t.calendar_source }}
+        </div>
+
+    </div>
+
+    <!-- Footer (Standard) -->
+    <div style="text-align: center; padding: 40px 20px; color: #999; font-size: 13px;">
+        <p>© {{ current_year }} {{ t.footer_text }}</p>
+    </div>
+
+    <script src="/static/loader.js"></script>
+</body>
+
+</html>

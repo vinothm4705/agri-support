@@ -1,0 +1,21 @@
+{
+    "name": "Agri Support - Beginner Farming Assistant",
+    "short_name": "AgriSupport",
+    "start_url": "/",
+    "display": "standalone",
+    "background_color": "#f8fcf8",
+    "theme_color": "#2e7d32",
+    "description": "Beginner farming assistant for Tamil Nadu farmers. Weather, Crop Guides, and Market Prices.",
+    "icons": [
+        {
+            "src": "/static/images/icon-192.png",
+            "sizes": "192x192",
+            "type": "image/png"
+        },
+        {
+            "src": "/static/images/icon-512.png",
+            "sizes": "512x512",
+            "type": "image/png"
+        }
+    ]
+}

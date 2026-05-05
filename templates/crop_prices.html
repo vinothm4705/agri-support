@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="{{ session.get('lang', 'en') }}">
+
+<head>
+    <title>{{ t.crop_prices_title }}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/static/style.css?v=2.0">
+    <script src="/static/vendor/js/chart.js"></script>
+    <link rel="stylesheet" href="/static/vendor/fontawesome/css/all.min.css">
+    <link rel="manifest" href="/static/manifest.json">
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/static/service-worker.js')
+                    .then(reg => console.log('SW registered!', reg.scope))
+                    .catch(err => console.log('SW failed:', err));
+            });
+        }
+    </script>
+</head>
+
+<body>
+
+    <!-- Language Switcher -->
+    <div class="lang-float">
+        <form method="post" action="/set_language">
+            <select name="lang" onchange="this.form.submit()">
+                <option value="en" {% if session.lang=="en" %}selected{% endif %}>English</option>
+                <option value="ta" {% if session.lang=="ta" %}selected{% endif %}>தமிழ்</option>
+            </select>
+        </form>
+    </div>
+
+    <div class="page-header-card">
+        <i class="fas fa-chart-line"></i>
+        <h1>{{ t.crop_prices_heading }}</h1>
+        <p>{{ t.crop_prices_subtitle }}</p>
+
+        <!-- Header Navigation -->
+        <nav class="header-nav">
+            <a href="/" class="nav-link {{ 'active' if request.path == '/' }}">{{ t.home }}</a>
+            <div class="dropdown">
+                <button
+                    class="nav-link dropdown-toggle {{ 'active' if request.path in ['/chatbot', '/weather', '/guide', '/crop-prices', '/pests', '/calculator'] }}"
+                    style="background:none; border:none; display:flex; align-items:center;">
+                    {{ t.features }}
+                </button>
+                <div class="dropdown-menu">
+                    <a href="/chatbot" class="{{ 'active' if request.path == '/chatbot' }}">{{ t.chatbot }}</a>
+                    <a href="/weather" class="{{ 'active' if request.path == '/weather' }}">{{ t.weather }}</a>
+                    <a href="/guide" class="{{ 'active' if request.path == '/guide' }}">{{ t.guide }}</a>
+                    <a href="/crop-prices" class="{{ 'active' if request.path == '/crop-prices' }}">{{ t.prices }}</a>
+                    <a href="/pests" class="{{ 'active' if request.path == '/pests' }}">{{ t.pests }}</a>
+                    <a href="/calculator" class="{{ 'active' if request.path == '/calculator' }}">{{ t.calculator }}</a>
+                </div>
+            </div>
+            <a href="/feedback" class="nav-link {{ 'active' if request.path == '/feedback' }}">{{ t.feedback_link }}</a>
+            <a href="/about" class="nav-link {{ 'active' if request.path == '/about' }}">{{ t.about }}</a>
+        </nav>
+    </div>
+
+    <div class="page-wrapper">
+
+
+        <div class="dashboard-grid">
+            <!-- LEFT PANEL: CONTROLS & CURRENT PRICE -->
+            <div class="price-card">
+                <h2
+                    style="font-size: 20px; color: var(--text-main); margin-bottom: 20px; border-bottom: 1px solid #eee; padding-bottom: 15px;">
+                    <i class="fas fa-filter"></i> {{ t.crop_prices_check_title }}
+                </h2>
+
+                <form method="post">
+                    <label style="font-size: 13px; font-weight: 600; color: var(--text-muted);">{{
+                        t.crop_prices_select_district }}</label>
+                    <select name="district" required style="margin-bottom: 15px;">
+                        <option value="">{{ t.crop_prices_select_district_placeholder }}</option>
+                        {% for d in districts %}
+                        <option value="{{ d[0] }}" {% if result and result.district_key==d[0] %}selected{% endif %}>
+                            {{ d[1] if session.lang == 'ta' else d[0] }}
+                        </option>
+                        {% endfor %}
+                    </select>
+
+                    <label style="font-size: 13px; font-weight: 600; color: var(--text-muted);">{{
+                        t.crop_prices_select_crop }}</label>
+                    <select name="crop" required style="margin-bottom: 25px;">
+                        <option value="">{{ t.crop_prices_select_crop_placeholder }}</option>
+                        {% for c in crops %}
+                        <option value="{{ c[0] }}" {% if result and result.crop_key==c[0] %}selected{% endif %}>
+                            {{ c[1] if session.lang == 'ta' else c[0] }}
+                        </option>
+                        {% endfor %}
+                    </select>
+
+                    <button type="submit" class="btn-premium" style="width: 100%; justify-content: center;">
+                        {{ t.crop_prices_view_button }} <i class="fas fa-arrow-right"></i>
+                    </button>
+                </form>
+
+                <script>
+                    document.querySelector('select[name="district"]').addEventListener('change', function () {
+                        const district = this.value;
+                        const cropSelect = document.querySelector('select[name="crop"]');
+                        const currentLang = "{{ session.get('lang', 'en') }}";
+
+                        // Clear current options (keep placeholder)
+                        cropSelect.innerHTML = '<option value="">{{ t.crop_prices_select_crop_placeholder }}</option>';
+
+                        if (district) {
+                            fetch(`/get-crops?district=${district}`)
+                                .then(response => response.json())
+                                .then(data => {
+                                    data.forEach(crop => {
+                                        const option = document.createElement('option');
+                                        option.value = crop.en;
+                                        option.textContent = currentLang === 'ta' ? crop.ta : crop.en;
+                                        cropSelect.appendChild(option);
+                                    });
+                                });
+                        }
+                    });
+                </script>
+
+                {% if result %}
+                <div style="margin-top: 30px; animation: fadeUp 0.5s ease; width: 100%;">
+
+                    <!-- Selected Info Box -->
+                    <div
+                        style="background: #f1f8e9; padding: 12px 15px; border-radius: 12px; border: 1px solid #c5e1a5; margin-bottom: 25px; text-align: center;">
+                        <div
+                            style="font-size: 12px; color: #558b2f; font-weight: 600; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px;">
+                            <i class="fas fa-check-circle"></i> {{ t.crop_prices_selected_label }}
+                        </div>
+                        <div style="font-weight: 700; color: #33691e; font-size: 16px;">
+                            {{ result.district }} <span style="margin: 0 5px; opacity: 0.4;">•</span> {{ result.crop }}
+                        </div>
+                    </div>
+
+                    <div style="text-align: center;">
+                        <div class="big-price" style="margin-top: 0;">₹ {{ result.price }}</div>
+                        <div class="price-unit">/ {{ result.unit }}</div>
+
+                        <div class="trend-badge trend-up">
+                            <i class="fas fa-arrow-up"></i> {{ t.price_trend_up if t.price_trend_up else 'Market Up' }}
+                        </div>
+
+                        <div style="margin-top: 20px; font-size: 12px; color: #aaa;">
+                            <i class="fas fa-clock"></i> {{ t.last_updated if t.last_updated else 'Updated on' }}: {{
+                            result.updated_on }}
+                        </div>
+                    </div> <!-- text-align box -->
+                </div> <!-- margin-top box -->
+                {% endif %}
+            </div> <!-- End of price-card -->
+
+            <!-- RIGHT PANEL: CHART -->
+            <div class="chart-card">
+                <h2 style="font-size: 20px; color: var(--text-main); margin-bottom: 20px;">
+                    <i class="fas fa-chart-area"></i> {{ t.price_history_title if t.price_history_title else 'Price
+                    Trends (30 Days)' }}
+                </h2>
+                {% if result %}
+                <canvas id="priceChart" style="width: 100%; height: 350px;"></canvas>
+                {% else %}
+                <div
+                    style="height: 100%; display: flex; align-items: center; justify-content: center; flex-direction: column; color: #ccc;">
+                    <i class="fas fa-chart-bar" style="font-size: 60px; margin-bottom: 20px; opacity: 0.3;"></i>
+                    <p>{{ t.select_view_chart if t.select_view_chart else 'Select a crop to view price trends' }}
+                    </p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Source Disclaimer -->
+        <div style="max-width: 1200px; margin: -30px auto 40px; padding: 0 20px; text-align: center;">
+            <p
+                style="font-size: 13px; color: var(--text-muted); background: rgba(0,0,0,0.03); padding: 10px; border-radius: 8px; border: 1px dashed rgba(0,0,0,0.1);">
+                <i class="fas fa-info-circle"></i> {{ t.crop_prices_source_disclaimer }}
+            </p>
+        </div>
+
+
+
+        <!-- Chart Script -->
+        {% if result %}
+        <script>
+            document.addEventListener("DOMContentLoaded", function () {
+                // Fetch History Data via AJAX
+                const formData = new FormData();
+                formData.append('district', '{{ result.district_key }}');
+                formData.append('crop', '{{ result.crop_key }}');
+
+                fetch('/price-history', {
+                    method: 'POST',
+                    body: formData
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        const ctx = document.getElementById('priceChart').getContext('2d');
+
+                        // Create Gradient
+                        let gradient = ctx.createLinearGradient(0, 0, 0, 400);
+                        gradient.addColorStop(0, 'rgba(46, 125, 50, 0.2)');
+                        gradient.addColorStop(1, 'rgba(46, 125, 50, 0.0)');
+
+                        new Chart(ctx, {
+                            type: 'line',
+                            data: {
+                                labels: data.dates,
+                                datasets: [{
+                                    label: '{{ t.price_in_rupees if t.price_in_rupees else "Price (₹)" }}',
+                                    data: data.prices,
+                                    borderColor: '#2e7d32',
+                                    backgroundColor: gradient,
+                                    borderWidth: 3,
+                                    pointBackgroundColor: '#ffffff',
+                                    pointBorderColor: '#2e7d32',
+                                    pointRadius: 5,
+                                    fill: true,
+                                    tension: 0.4
+                                }]
+                            },
+                            options: {
+                                responsive: true,
+                                plugins: {
+                                    legend: { display: false }
+                                },
+                                scales: {
+                                    y: {
+                                        beginAtZero: false,
+                                        grid: { borderDash: [5, 5] }
+                                    },
+                                    x: {
+                                        grid: { display: false }
+                                    }
+                                }
+                            }
+                        });
+                    });
+            });
+        </script>
+        {% endif %}
+
+        <!-- Footer -->
+        <div style="text-align: center; padding: 40px 20px; color: #999; font-size: 13px;">
+            <p>© {{ current_year }} {{ t.footer_text }}</p>
+        </div>
+    </div><!-- End page-wrapper -->
+
+    <script src="/static/loader.js"></script>
+</body>
+
+</html>

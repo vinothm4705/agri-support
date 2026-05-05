@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="{{ session.get('lang', 'en') }}">
+
+<head>
+    <title>{{ t.feedback_title }}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/static/style.css?v=3.1">
+    <link rel="stylesheet" href="/static/vendor/fontawesome/css/all.min.css">
+
+
+    <style>
+        body {
+            font-family: 'Outfit', sans-serif;
+            background: #fdfdfd;
+        }
+
+        .feedback-container {
+            display: flex;
+            justify-content: center;
+            padding: 0 20px;
+            margin-bottom: 40px;
+        }
+
+        /* Reduce gap between header and form on this page */
+        .page-header-card {
+            margin-bottom: 10px;
+        }
+
+        .feedback-card {
+            background: white;
+            padding: 40px;
+            border-radius: 25px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
+            border: 1px solid #f0f0f0;
+            position: relative;
+            overflow: hidden;
+            text-align: center;
+            width: 100%;
+            max-width: 600px;
+        }
+
+        .feedback-card .form-group {
+            text-align: left;
+        }
+
+        .feedback-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .feedback-header i {
+            font-size: 50px;
+            color: #4CAF50;
+            margin-bottom: 15px;
+            background: #e8f5e9;
+            width: 100px;
+            height: 100px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+        }
+
+        .feedback-header h2 {
+            margin: 10px 0;
+            color: #333;
+            font-weight: 700;
+        }
+
+        .feedback-header p {
+            color: #666;
+            font-size: 15px;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #444;
+            font-size: 14px;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #eee;
+            border-radius: 12px;
+            font-size: 15px;
+            font-family: 'Outfit', sans-serif;
+            transition: all 0.3s;
+            box-sizing: border-box;
+        }
+
+        .form-control:focus {
+            border-color: #4CAF50;
+            outline: none;
+            box-shadow: 0 0 0 4px rgba(76, 175, 80, 0.1);
+        }
+
+        /* Star Rating */
+        .star-rating {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin: 20px 0;
+            flex-direction: row-reverse;
+        }
+
+        .star-rating input {
+            display: none;
+        }
+
+        .star-rating label {
+            font-size: 35px;
+            color: #ddd;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+
+        .star-rating input:checked~label,
+        .star-rating label:hover,
+        .star-rating label:hover~label {
+            color: #FFC107;
+        }
+
+        /* Category Selector */
+        .category-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+        }
+
+        .category-option {
+            display: none;
+        }
+
+        .category-label {
+            display: flex;
+            align-items: center;
+            padding: 12px;
+            background: #f8f9fa;
+            border: 2px solid #eee;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 14px;
+            color: #555;
+            gap: 10px;
+        }
+
+        .category-label i {
+            font-size: 18px;
+            color: #999;
+        }
+
+        .category-option:checked+.category-label {
+            border-color: #4CAF50;
+            background: #e8f5e9;
+            color: #2e7d32;
+        }
+
+        .category-option:checked+.category-label i {
+            color: #4CAF50;
+        }
+
+        .btn-submit {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #4CAF50, #2E7D32);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: transform 0.2s;
+            box-shadow: 0 5px 15px rgba(76, 175, 80, 0.3);
+        }
+
+        .btn-submit:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(76, 175, 80, 0.4);
+        }
+
+        .feedback-header p {
+            color: #444;
+            /* Darker text */
+            font-size: 15px;
+        }
+
+        .success-message {
+            display: none;
+            text-align: center;
+            padding: 40px;
+        }
+
+        .success-icon {
+            font-size: 80px;
+            color: #2E7D32;
+            /* Stronger green */
+            margin-bottom: 20px;
+            /* Removed animation to prevent stuck opacity */
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        /* NUCLEAR FIX: Force everything to be fully opaque 100% of the time */
+        .feedback-container,
+        .feedback-card,
+        .feedback-card *,
+        .success-message,
+        #feedbackFormBlock {
+            opacity: 1 !important;
+            filter: none !important;
+            transition: none !important;
+            /* Kill any hover transitions */
+        }
+
+        .feedback-card {
+            background: white !important;
+            box-shadow: 0 15px 50px rgba(0, 0, 0, 0.15) !important;
+            border: 1px solid #e0e0e0;
+        }
+
+        .success-message p {
+            color: #333 !important;
+            /* Darker text */
+            font-weight: 500;
+        }
+
+        /* === MOBILE OVERRIDES === */
+        @media (max-width: 768px) {
+            .feedback-card {
+                padding: 25px 20px !important;
+            }
+
+            .category-grid {
+                grid-template-columns: 1fr !important;
+                /* Stack category buttons */
+                gap: 12px;
+            }
+
+            .feedback-header i {
+                width: 80px;
+                height: 80px;
+                font-size: 40px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Language Switcher -->
+    <div class="lang-float">
+        <form method="post" action="/set_language">
+            <select name="lang" onchange="this.form.submit()">
+                <option value="en" {% if session.lang=="en" %}selected{% endif %}>English</option>
+                <option value="ta" {% if session.lang=="ta" %}selected{% endif %}>தமிழ்</option>
+            </select>
+        </form>
+    </div>
+
+    <!-- Header -->
+    <div class="page-header-card">
+        <i class="fas fa-comment-dots"></i>
+        <h1>{{ t.feedback_title }}</h1>
+        <p>{{ t.feedback_desc }}</p>
+
+        <!-- Navigation -->
+        <!-- Navigation -->
+        <nav class="header-nav">
+            <a href="/" class="nav-link {{ 'active' if request.path == '/' }}">{{ t.home }}</a>
+
+            <div class="dropdown">
+                <button
+                    class="nav-link dropdown-toggle {{ 'active' if request.path in ['/chatbot', '/weather', '/guide', '/crop-prices', '/pests', '/calculator'] }}"
+                    style="background:none; border:none; display:flex; align-items:center;">
+                    {{ t.features }}
+                </button>
+                <div class="dropdown-menu">
+                    <a href="/chatbot" class="{{ 'active' if request.path == '/chatbot' }}">{{ t.chatbot }}</a>
+                    <a href="/weather" class="{{ 'active' if request.path == '/weather' }}">{{ t.weather }}</a>
+                    <a href="/guide" class="{{ 'active' if request.path == '/guide' }}">{{ t.guide }}</a>
+                    <a href="/crop-prices" class="{{ 'active' if request.path == '/crop-prices' }}">{{ t.prices }}</a>
+                    <a href="/pests" class="{{ 'active' if request.path == '/pests' }}">{{ t.pests }}</a>
+                    <a href="/calculator" class="{{ 'active' if request.path == '/calculator' }}">{{ t.calculator }}</a>
+                </div>
+            </div>
+
+            <a href="/feedback" class="nav-link {{ 'active' if request.path == '/feedback' }}">{{ t.feedback_link }}</a>
+
+            <a href="/about" class="nav-link {{ 'active' if request.path == '/about' }}">{{ t.about }}</a>
+        </nav>
+    </div>
+
+    <div class="feedback-container">
+        <div class="feedback-card">
+
+            <div id="feedbackFormBlock">
+                <div class="feedback-header">
+                    <i class="fas fa-bullhorn"></i>
+                    <h2>{{ t.feedback_form_title }}</h2>
+                    <p>{{ t.feedback_form_subtitle }}</p>
+                </div>
+
+                <form id="feedbackForm" onsubmit="submitFeedback(event)" class="no-loader">
+
+                    <!-- Rating -->
+                    <div class="form-group" style="text-align: center;">
+                        <label class="form-label">{{ t.feedback_rating_label }}</label>
+                        <div class="star-rating">
+                            <input type="radio" id="star5" name="rating" value="5" /><label for="star5"
+                                title="{{ t.feedback_star_5 }}">★</label>
+                            <input type="radio" id="star4" name="rating" value="4" /><label for="star4"
+                                title="{{ t.feedback_star_4 }}">★</label>
+                            <input type="radio" id="star3" name="rating" value="3" /><label for="star3"
+                                title="{{ t.feedback_star_3 }}">★</label>
+                            <input type="radio" id="star2" name="rating" value="2" /><label for="star2"
+                                title="{{ t.feedback_star_2 }}">★</label>
+                            <input type="radio" id="star1" name="rating" value="1" /><label for="star1"
+                                title="{{ t.feedback_star_1 }}">★</label>
+                        </div>
+                    </div>
+
+                    <!-- Category -->
+                    <div class="form-group">
+                        <label class="form-label">{{ t.feedback_category_label }}</label>
+                        <div class="category-grid">
+                            <div>
+                                <input type="radio" name="category" id="cat_feature" value="Feature"
+                                    class="category-option" checked>
+                                <label for="cat_feature" class="category-label">
+                                    <i class="fas fa-lightbulb"></i> {{ t.cat_feature }}
+                                </label>
+                            </div>
+                            <div>
+                                <input type="radio" name="category" id="cat_bug" value="Bug" class="category-option">
+                                <label for="cat_bug" class="category-label">
+                                    <i class="fas fa-bug"></i> {{ t.cat_bug }}
+                                </label>
+                            </div>
+                            <div>
+                                <input type="radio" name="category" id="cat_ui" value="UI/UX" class="category-option">
+                                <label for="cat_ui" class="category-label">
+                                    <i class="fas fa-palette"></i> {{ t.cat_ui }}
+                                </label>
+                            </div>
+                            <div>
+                                <input type="radio" name="category" id="cat_other" value="Other"
+                                    class="category-option">
+                                <label for="cat_other" class="category-label">
+                                    <i class="fas fa-comment"></i> {{ t.cat_other }}
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Name -->
+                    <div class="form-group">
+                        <label class="form-label">{{ t.feedback_name_label }}</label>
+                        <input type="text" name="name" class="form-control"
+                            placeholder="{{ t.feedback_name_placeholder }}">
+                    </div>
+
+                    <!-- Message -->
+                    <div class="form-group">
+                        <label class="form-label">{{ t.feedback_message_label }}</label>
+                        <textarea name="message" class="form-control" rows="4"
+                            placeholder="{{ t.feedback_message_placeholder }}" required></textarea>
+                    </div>
+
+                    <button type="submit" class="btn-submit">
+                        {{ t.feedback_submit_btn }} <i class="fas fa-paper-plane"></i>
+                    </button>
+                </form>
+            </div>
+
+            <!-- Success Message -->
+            <div id="successMessage" class="success-message">
+                <i class="fas fa-check-circle success-icon"></i>
+                <h2>{{ t.feedback_success }}</h2>
+                <p style="color:#666; margin-top:10px;">{{ t.feedback_appreciate }}</p>
+                <button onclick="location.reload()" class="btn-submit"
+                    style="margin-top:20px; width:auto; padding:10px 30px;">
+                    {{ t.feedback_submit_another }}
+                </button>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        function submitFeedback(e) {
+            e.preventDefault();
+            const form = document.getElementById('feedbackForm');
+            const formData = new FormData(form);
+
+            // Manual Validation for Rating
+            if (!formData.get('rating')) {
+                alert('{{ t.feedback_rating_alert }}');
+                return;
+            }
+
+            const btn = form.querySelector('button[type="submit"]');
+
+            // Disable button to prevent double submit
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> {{ t.feedback_sending }}';
+            btn.disabled = true;
+
+            fetch('/feedback', {
+                method: 'POST',
+                body: formData
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        document.getElementById('feedbackFormBlock').style.display = 'none';
+                        document.getElementById('successMessage').style.display = 'block';
+                    } else {
+                        alert('Error: ' + data.message);
+                        btn.innerHTML = originalText;
+                        btn.disabled = false;
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('{{ t.feedback_error }}');
+                    btn.innerHTML = originalText;
+                    btn.disabled = false;
+                });
+        }
+    </script>
+
+    <!-- Footer -->
+    <div style="text-align: center; padding: 60px 20px; color: #999; font-size: 13px;">
+        <p>© {{ current_year }} {{ t.footer_text }}</p>
+    </div>
+
+    <script src="/static/loader.js"></script>
+</body>
+
+</html>

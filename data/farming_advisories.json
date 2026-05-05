@@ -1,0 +1,252 @@
+{
+    "source": "TNAU Agritech Portal (agritech.tnau.ac.in), IMD Tamil Nadu",
+    "last_updated": "2026-02-07",
+    "notes": "Fallback advisories for Tamil Nadu farmers when AI quota exceeded. Based on real TNAU guidelines.",
+    "temperature": {
+        "extreme_heat": {
+            "condition": "temp > 38",
+            "en": [
+                "🔥 EXTREME HEAT: Temperature above 38°C. Irrigate paddy and vegetable fields early morning (before 8 AM) or late evening (after 5 PM) to reduce evaporation loss.",
+                "🔥 HIGH TEMPERATURE ALERT: Avoid pesticide and fertilizer spraying - chemicals evaporate quickly and may burn crops. Use mulching to protect soil moisture.",
+                "🔥 HEAT STRESS: Provide 25% extra irrigation for standing crops. Consider temporary shade nets for nurseries and young vegetable plants."
+            ],
+            "ta": [
+                "🔥 கடும் வெப்பம்: 38°C க்கு மேல் வெப்பநிலை. நெல் மற்றும் காய்கறி வயல்களுக்கு காலை 8 மணிக்கு முன் அல்லது மாலை 5 மணிக்கு பிறகு நீர் பாய்ச்சுங்கள்.",
+                "🔥 உயர் வெப்பநிலை எச்சரிக்கை: பூச்சிக்கொல்லி மற்றும் உரம் தெளிப்பதை தவிர்க்கவும் - இரசாயனங்கள் விரைவாக ஆவியாகும். மண் ஈரப்பதத்தை பாதுகாக்க தழை படுக்கை பயன்படுத்துங்கள்.",
+                "🔥 வெப்ப அழுத்தம்: நிற்கும் பயிர்களுக்கு 25% கூடுதல் நீர் பாய்ச்சுங்கள். நாற்றங்கால் மற்றும் இளம் காய்கறி செடிகளுக்கு தற்காலிக நிழல் வலை பயன்படுத்தவும்."
+            ]
+        },
+        "hot": {
+            "condition": "temp >= 33 and temp <= 38",
+            "en": [
+                "☀️ HOT WEATHER: Temperature 33-38°C. Schedule irrigation in morning or evening. Monitor crops for wilting signs.",
+                "☀️ WARM CONDITIONS: Increase irrigation frequency by 20%. Avoid transplanting during noon hours (11 AM - 3 PM).",
+                "☀️ HEAT ADVISORY: Good time for harvesting groundnut and cotton if ready. Ensure proper drying of harvested produce."
+            ],
+            "ta": [
+                "☀️ வெப்பமான வானிலை: 33-38°C வெப்பநிலை. காலை அல்லது மாலையில் நீர் பாய்ச்சுங்கள். வாடும் அறிகுறிகளை கண்காணிக்கவும்.",
+                "☀️ வெதுவெதுப்பான நிலை: நீர் பாய்ச்சும் அதிர்வெண்ணை 20% அதிகரிக்கவும். மதியம் 11 - மாலை 3 மணி வரை நாற்று நடவை தவிர்க்கவும்.",
+                "☀️ வெப்ப ஆலோசனை: நிலக்கடலை மற்றும் பருத்தி அறுவடைக்கு நல்ல நேரம். அறுவடை செய்த விளைபொருட்களை சரியாக உலர்த்துங்கள்."
+            ]
+        },
+        "moderate": {
+            "condition": "temp >= 25 and temp < 33",
+            "en": [
+                "✅ IDEAL CONDITIONS: Temperature 25-33°C is optimal for most crops. Good time for sowing, transplanting, and field operations.",
+                "✅ FAVORABLE WEATHER: Suitable for fertilizer application. Apply urea/DAP in the morning with adequate soil moisture.",
+                "✅ NORMAL CONDITIONS: Continue regular irrigation schedule. Good weather for pesticide spraying if needed."
+            ],
+            "ta": [
+                "✅ சிறந்த நிலை: 25-33°C வெப்பநிலை பெரும்பாலான பயிர்களுக்கு ஏற்றது. விதைப்பு, நாற்று நடவு மற்றும் வயல் வேலைகளுக்கு நல்ல நேரம்.",
+                "✅ சாதகமான வானிலை: உரம் இடுவதற்கு ஏற்றது. போதுமான மண் ஈரப்பதத்துடன் காலையில் யூரியா/DAP இடுங்கள்.",
+                "✅ சாதாரண நிலை: வழக்கமான நீர் பாய்ச்சும் அட்டவணையை தொடருங்கள். தேவைப்பட்டால் பூச்சிக்கொல்லி தெளிக்க நல்ல வானிலை."
+            ]
+        },
+        "cool": {
+            "condition": "temp >= 18 and temp < 25",
+            "en": [
+                "🌤️ COOL WEATHER: Temperature 18-25°C. Reduce irrigation frequency - soil retains moisture longer. Watch for fungal diseases.",
+                "🌤️ MILD CONDITIONS: Ideal for rabi crops (wheat, gram, vegetables). Good germination weather for nursery beds.",
+                "🌤️ PLEASANT WEATHER: Monitor for pest activity in the evening hours. Good time for land preparation."
+            ],
+            "ta": [
+                "🌤️ குளிர் வானிலை: 18-25°C வெப்பநிலை. நீர் பாய்ச்சும் அதிர்வெண்ணை குறைக்கவும் - மண் நீண்ட நேரம் ஈரப்பதத்தை தக்கவைக்கும்.",
+                "🌤️ மிதமான நிலை: ரபி பயிர்களுக்கு (கோதுமை, கடலை, காய்கறிகள்) ஏற்றது. நாற்றங்கால் படுக்கைகளுக்கு நல்ல முளைப்பு வானிலை.",
+                "🌤️ இனிமையான வானிலை: மாலை நேரங்களில் பூச்சி நடவடிக்கையை கண்காணிக்கவும். நில தயாரிப்புக்கு நல்ல நேரம்."
+            ]
+        },
+        "cold": {
+            "condition": "temp < 18",
+            "en": [
+                "❄️ COLD WEATHER: Temperature below 18°C. Protect young seedlings with straw mulch or plastic covers. Avoid early morning irrigation.",
+                "❄️ LOW TEMPERATURE: Risk of frost in low-lying areas. Cover nurseries and sensitive vegetable crops at night.",
+                "❄️ COLD STRESS: Delay sowing of summer crops. Good time for harvesting and storage of produce."
+            ],
+            "ta": [
+                "❄️ குளிர் வானிலை: 18°C க்கு கீழ் வெப்பநிலை. இளம் நாற்றுகளை வைக்கோல் தழை அல்லது பிளாஸ்டிக் மூடிகளால் பாதுகாக்கவும்.",
+                "❄️ குறைந்த வெப்பநிலை: தாழ்வான பகுதிகளில் உறைபனி ஆபத்து. இரவில் நாற்றங்கால் மற்றும் உணர்திறன் காய்கறி பயிர்களை மூடுங்கள்.",
+                "❄️ குளிர் அழுத்தம்: கோடை பயிர்களின் விதைப்பை தாமதப்படுத்துங்கள். அறுவடை மற்றும் சேமிப்புக்கு நல்ல நேரம்."
+            ]
+        }
+    },
+    "humidity": {
+        "very_high": {
+            "condition": "humidity > 85",
+            "en": [
+                "💧 VERY HIGH HUMIDITY (>85%): High risk of fungal diseases (blast, blight, mildew). Avoid dense planting. Ensure proper drainage.",
+                "💧 MOISTURE ALERT: Do not apply nitrogen fertilizers - promotes excessive leaf growth prone to disease. Monitor paddy for blast symptoms.",
+                "💧 HUMID CONDITIONS: Spray fungicides (Mancozeb/Carbendazim) as preventive measure for vegetable crops."
+            ],
+            "ta": [
+                "💧 மிக அதிக ஈரப்பதம் (>85%): பூஞ்சை நோய்களின் (வெடிப்பு, இலைக்கருகல்) அதிக ஆபத்து. அடர்த்தியான நடவை தவிர்க்கவும்.",
+                "💧 ஈரப்பத எச்சரிக்கை: நைட்ரஜன் உரங்களை இட வேண்டாம் - நோய்க்கு உள்ளாகும் அதிக இலை வளர்ச்சியை ஊக்குவிக்கும்.",
+                "💧 ஈரமான நிலை: காய்கறி பயிர்களுக்கு தடுப்பு நடவடிக்கையாக பூஞ்சைக்கொல்லிகளை (மான்கோசெப்/கார்பெண்டாசிம்) தெளிக்கவும்."
+            ]
+        },
+        "high": {
+            "condition": "humidity >= 70 and humidity <= 85",
+            "en": [
+                "💦 HIGH HUMIDITY (70-85%): Monitor crops for early signs of fungal infection. Ensure adequate spacing between plants for air circulation.",
+                "💦 MOISTURE CONDITIONS: Avoid overhead irrigation - use drip or furrow method to reduce leaf wetness.",
+                "💦 HUMID WEATHER: Good conditions for transplanting rice seedlings. Maintain proper field drainage."
+            ],
+            "ta": [
+                "💦 அதிக ஈரப்பதம் (70-85%): பூஞ்சை தொற்றின் ஆரம்ப அறிகுறிகளை கண்காணிக்கவும். காற்று சுழற்சிக்கு செடிகளுக்கு இடையே போதுமான இடைவெளி உறுதிசெய்யுங்கள்.",
+                "💦 ஈரப்பத நிலை: மேல்நிலை நீர் பாய்ச்சலை தவிர்க்கவும் - இலை ஈரப்பதத்தை குறைக்க சொட்டு அல்லது வாய்க்கால் முறை பயன்படுத்துங்கள்.",
+                "💦 ஈரமான வானிலை: நெல் நாற்று நடவுக்கு நல்ல நிலை. சரியான வயல் வடிகால் பராமரிக்கவும்."
+            ]
+        },
+        "moderate": {
+            "condition": "humidity >= 40 and humidity < 70",
+            "en": [
+                "✅ OPTIMAL HUMIDITY (40-70%): Ideal conditions for most field operations. Good time for fertilizer and pesticide application.",
+                "✅ BALANCED MOISTURE: Favorable for crop growth and harvesting. Continue normal farming practices.",
+                "✅ GOOD CONDITIONS: Suitable for seed drying and storage activities."
+            ],
+            "ta": [
+                "✅ சிறந்த ஈரப்பதம் (40-70%): பெரும்பாலான வயல் வேலைகளுக்கு ஏற்ற நிலை. உரம் மற்றும் பூச்சிக்கொல்லி இடுவதற்கு நல்ல நேரம்.",
+                "✅ சமநிலை ஈரப்பதம்: பயிர் வளர்ச்சி மற்றும் அறுவடைக்கு சாதகமானது. சாதாரண விவசாய நடைமுறைகளை தொடருங்கள்.",
+                "✅ நல்ல நிலை: விதை உலர்த்தல் மற்றும் சேமிப்பு நடவடிக்கைகளுக்கு ஏற்றது."
+            ]
+        },
+        "low": {
+            "condition": "humidity < 40",
+            "en": [
+                "🏜️ LOW HUMIDITY (<40%): High evaporation rate. Increase irrigation frequency and apply mulch to conserve soil moisture.",
+                "🏜️ DRY CONDITIONS: Good for grain drying and storage. Avoid transplanting - seedling mortality risk high.",
+                "🏜️ ARID WEATHER: Monitor for spider mites and thrips which thrive in dry conditions. Consider foliar spray for moisture."
+            ],
+            "ta": [
+                "🏜️ குறைந்த ஈரப்பதம் (<40%): அதிக ஆவியாதல் விகிதம். நீர் பாய்ச்சும் அதிர்வெண்ணை அதிகரித்து மண் ஈரப்பதத்தை பாதுகாக்க தழை இடுங்கள்.",
+                "🏜️ வறண்ட நிலை: தானிய உலர்த்தல் மற்றும் சேமிப்புக்கு நல்லது. நாற்று நடவை தவிர்க்கவும் - நாற்று இறப்பு ஆபத்து அதிகம்.",
+                "🏜️ வறண்ட வானிலை: வறண்ட நிலையில் செழிக்கும் சிலந்தி பூச்சிகள் மற்றும் த்ரிப்ஸை கண்காணிக்கவும்."
+            ]
+        }
+    },
+    "wind": {
+        "high_wind": {
+            "condition": "wind_speed > 10",
+            "en": [
+                "💨 STRONG WIND (>10 m/s): Do NOT spray pesticides or fertilizers - chemicals will drift and waste. Stake tall crops (banana, sugarcane).",
+                "💨 WIND WARNING: Secure plastic mulches, nursery shades, and temporary structures. Delay irrigation to avoid uneven distribution.",
+                "💨 HIGH WIND ALERT: Harvest mature crops immediately to prevent lodging. Provide windbreaks for vegetable nurseries."
+            ],
+            "ta": [
+                "💨 கடும் காற்று (>10 மீ/வி): பூச்சிக்கொல்லிகள் அல்லது உரங்களை தெளிக்க வேண்டாம் - இரசாயனங்கள் பரவி வீணாகும்.",
+                "💨 காற்று எச்சரிக்கை: பிளாஸ்டிக் தழை, நாற்றங்கால் நிழல்கள் மற்றும் தற்காலிக கட்டமைப்புகளை பாதுகாக்கவும்.",
+                "💨 கடும் காற்று எச்சரிக்கை: சாய்வதை தடுக்க முதிர்ந்த பயிர்களை உடனடியாக அறுவடை செய்யுங்கள்."
+            ]
+        },
+        "moderate_wind": {
+            "condition": "wind_speed >= 5 and wind_speed <= 10",
+            "en": [
+                "🌬️ MODERATE WIND (5-10 m/s): Spray pesticides only in calm morning hours (6-9 AM). Use sticker agents for better adhesion.",
+                "🌬️ WINDY CONDITIONS: Good for natural pollination of crops. Check irrigation systems for even water distribution.",
+                "🌬️ BREEZY WEATHER: Favorable for drying harvested grains. Monitor young plantations for wind damage."
+            ],
+            "ta": [
+                "🌬️ மிதமான காற்று (5-10 மீ/வி): அமைதியான காலை நேரத்தில் (6-9 AM) மட்டுமே பூச்சிக்கொல்லிகளை தெளிக்கவும்.",
+                "🌬️ காற்றோட்டமான நிலை: பயிர்களின் இயற்கை மகரந்தச் சேர்க்கைக்கு நல்லது. சம நீர் விநியோகத்திற்கு நீர் பாய்ச்சல் அமைப்புகளை சரிபார்க்கவும்.",
+                "🌬️ தென்றல் வானிலை: அறுவடை செய்த தானியங்களை உலர்த்த சாதகமானது."
+            ]
+        },
+        "calm": {
+            "condition": "wind_speed < 5",
+            "en": [
+                "🍃 CALM CONDITIONS (<5 m/s): Ideal for pesticide and fertilizer spraying. Ensure even coverage with fine spray.",
+                "🍃 LOW WIND: Good time for all field operations. Optimal conditions for transplanting and sowing.",
+                "🍃 STILL WEATHER: Perfect for foliar application of micronutrients. Monitor for pest activity in evening."
+            ],
+            "ta": [
+                "🍃 அமைதியான நிலை (<5 மீ/வி): பூச்சிக்கொல்லி மற்றும் உரம் தெளிக்க ஏற்றது. நுண்ணிய தெளிப்புடன் சமமான பரவலை உறுதிசெய்யுங்கள்.",
+                "🍃 குறைந்த காற்று: அனைத்து வயல் வேலைகளுக்கும் நல்ல நேரம். நாற்று நடவு மற்றும் விதைப்புக்கு சிறந்த நிலை.",
+                "🍃 அசையா வானிலை: நுண்ணூட்டச்சத்துக்களின் இலை தெளிப்புக்கு சிறந்தது."
+            ]
+        }
+    },
+    "rain": {
+        "heavy_rain": {
+            "condition": "rain_1h > 20",
+            "en": [
+                "🌧️ HEAVY RAIN (>20mm/hr): Open all drainage channels immediately. Do not enter waterlogged fields - safety first.",
+                "🌧️ FLOOD RISK: Secure livestock and equipment. Harvest ready crops if possible before they get damaged.",
+                "🌧️ HEAVY RAINFALL: Apply lime to fields after water recedes to prevent soil acidity. Check for root rot in standing water."
+            ],
+            "ta": [
+                "🌧️ கனமழை (>20mm/மணி): அனைத்து வடிகால் கால்வாய்களையும் உடனடியாக திறக்கவும். நீர் தேங்கிய வயல்களுக்குள் நுழைய வேண்டாம்.",
+                "🌧️ வெள்ள ஆபத்து: கால்நடைகள் மற்றும் உபகரணங்களை பாதுகாக்கவும். சேதமடையும் முன் தயாராக உள்ள பயிர்களை அறுவடை செய்யுங்கள்.",
+                "🌧️ கனமழை: நீர் வடிந்த பிறகு மண் அமிலத்தன்மையை தடுக்க சுண்ணாம்பு இடுங்கள்."
+            ]
+        },
+        "moderate_rain": {
+            "condition": "rain_1h > 5 and rain_1h <= 20",
+            "en": [
+                "🌦️ MODERATE RAIN (5-20mm): Stop all spraying activities. Wait 24-48 hours after rain before applying chemicals.",
+                "🌦️ RAINY CONDITIONS: Good natural irrigation. Reduce pump irrigation. Check drainage in low-lying areas.",
+                "🌦️ WET WEATHER: Monitor for slug and snail damage in vegetable fields. Apply baits around field borders."
+            ],
+            "ta": [
+                "🌦️ மிதமான மழை (5-20mm): அனைத்து தெளிப்பு நடவடிக்கைகளையும் நிறுத்துங்கள். இரசாயனங்களை இடுவதற்கு முன் 24-48 மணி நேரம் காத்திருக்கவும்.",
+                "🌦️ மழை நிலை: நல்ல இயற்கை நீர் பாய்ச்சல். பம்ப் நீர் பாய்ச்சலை குறைக்கவும். தாழ்வான பகுதிகளில் வடிகால் சரிபார்க்கவும்.",
+                "🌦️ ஈரமான வானிலை: காய்கறி வயல்களில் நத்தை சேதத்தை கண்காணிக்கவும்."
+            ]
+        },
+        "light_rain": {
+            "condition": "rain_1h > 0 and rain_1h <= 5",
+            "en": [
+                "🌧️ LIGHT RAIN (0-5mm): Avoid fertilizer application - nutrients will wash away. Good time for transplanting rice seedlings.",
+                "🌧️ DRIZZLE CONDITIONS: Natural moisture is beneficial. Skip today's irrigation schedule.",
+                "🌧️ LIGHT SHOWERS: Favorable for seed germination. Monitor for fungal disease development in humid conditions."
+            ],
+            "ta": [
+                "🌧️ லேசான மழை (0-5mm): உரம் இடுவதை தவிர்க்கவும் - ஊட்டச்சத்துக்கள் கழுவப்படும். நெல் நாற்று நடவுக்கு நல்ல நேரம்.",
+                "🌧️ தூறல் நிலை: இயற்கை ஈரப்பதம் நன்மை பயக்கும். இன்றைய நீர் பாய்ச்சல் அட்டவணையை தவிர்க்கவும்.",
+                "🌧️ லேசான மழை: விதை முளைப்புக்கு சாதகமானது. ஈரமான நிலையில் பூஞ்சை நோய் வளர்ச்சியை கண்காணிக்கவும்."
+            ]
+        },
+        "no_rain": {
+            "condition": "rain_1h == 0",
+            "en": [
+                "☀️ DRY WEATHER: Maintain regular irrigation schedule based on crop stage and soil moisture.",
+                "☀️ NO RAINFALL: Good conditions for fertilizer and pesticide application. Check soil moisture before irrigating.",
+                "☀️ CLEAR SKIES: Optimal for harvesting and drying of grains, pulses, and oilseeds."
+            ],
+            "ta": [
+                "☀️ வறண்ட வானிலை: பயிர் நிலை மற்றும் மண் ஈரப்பதத்தின் அடிப்படையில் வழக்கமான நீர் பாய்ச்சல் அட்டவணையை பராமரிக்கவும்.",
+                "☀️ மழை இல்லை: உரம் மற்றும் பூச்சிக்கொல்லி இடுவதற்கு நல்ல நிலை. நீர் பாய்ச்சுவதற்கு முன் மண் ஈரப்பதத்தை சரிபார்க்கவும்.",
+                "☀️ தெளிவான வானம்: தானியங்கள், பருப்புகள் மற்றும் எண்ணெய் வித்துக்களை அறுவடை செய்து உலர்த்த சிறந்தது."
+            ]
+        }
+    },
+    "pressure": {
+        "low_pressure": {
+            "condition": "pressure < 1005",
+            "en": [
+                "🌀 LOW PRESSURE (<1005 hPa): Rain and storms likely. Complete urgent field work today. Secure temporary structures.",
+                "🌀 WEATHER CHANGE: Postpone spraying activities. Harvest mature crops before weather deteriorates."
+            ],
+            "ta": [
+                "🌀 குறைந்த அழுத்தம் (<1005 hPa): மழை மற்றும் புயல் வாய்ப்பு. அவசர வயல் வேலைகளை இன்றே முடிக்கவும்.",
+                "🌀 வானிலை மாற்றம்: தெளிப்பு நடவடிக்கைகளை ஒத்திவைக்கவும். வானிலை மோசமாகும் முன் முதிர்ந்த பயிர்களை அறுவடை செய்யுங்கள்."
+            ]
+        },
+        "normal_pressure": {
+            "condition": "pressure >= 1005 and pressure <= 1020",
+            "en": [
+                "✅ STABLE WEATHER (1005-1020 hPa): Normal farming conditions. Good time for all agricultural operations."
+            ],
+            "ta": [
+                "✅ நிலையான வானிலை (1005-1020 hPa): சாதாரண விவசாய நிலை. அனைத்து விவசாய செயல்பாடுகளுக்கும் நல்ல நேரம்."
+            ]
+        },
+        "high_pressure": {
+            "condition": "pressure > 1020",
+            "en": [
+                "☀️ HIGH PRESSURE (>1020 hPa): Clear, dry weather expected. Monitor irrigation needs. Good for field drying."
+            ],
+            "ta": [
+                "☀️ உயர் அழுத்தம் (>1020 hPa): தெளிவான, வறண்ட வானிலை எதிர்பார்க்கப்படுகிறது. நீர் பாய்ச்சல் தேவைகளை கண்காணிக்கவும்."
+            ]
+        }
+    }
+}

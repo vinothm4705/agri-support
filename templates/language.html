@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="{{ session.get('lang', 'en') }}">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Select Language | Agri Support</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <link rel="stylesheet" href="/static/vendor/fontawesome/css/all.min.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        :root {
+            --bg-deep: #f8fcf8;
+            --bg-gradient: linear-gradient(180deg, #f8fcf8 0%, #f1f8e9 100%);
+            --accent-green: #2e7d32;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            width: 100%;
+            margin: 0;
+            padding: 20px;
+            background: var(--bg-deep);
+            background-image: var(--bg-gradient);
+            overflow: hidden;
+            position: relative;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+
+        /* --- BACKGROUND PARTICLES --- */
+        .leaf-bg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+            /* Behind everything */
+            opacity: 0;
+            animation: fadeInBg 1.5s ease forwards;
+            /* Soft Fade In */
+        }
+
+        @keyframes fadeInBg {
+            to {
+                opacity: 1;
+            }
+        }
+
+        .floating-el {
+            position: absolute;
+            color: var(--accent-green);
+            opacity: 0;
+            font-size: 24px;
+            font-weight: 800;
+            will-change: transform, opacity;
+            /* Hardware Accel */
+            animation: float-creative-up 20s infinite linear;
+        }
+
+        @keyframes float-creative-up {
+            0% {
+                transform: translateY(110vh) rotate(0deg);
+                opacity: 0;
+            }
+
+            10% {
+                opacity: 0.4;
+            }
+
+            90% {
+                opacity: 0.4;
+            }
+
+            100% {
+                transform: translateY(-10vh) rotate(360deg);
+                opacity: 0;
+            }
+        }
+
+        /* Optimized Grid of Elements (15 Items) */
+        .el-1 {
+            left: 10%;
+            animation-duration: 18s;
+            animation-delay: 0s;
+            font-size: 30px;
+        }
+
+        .el-2 {
+            left: 25%;
+            animation-duration: 25s;
+            animation-delay: -5s;
+        }
+
+        .el-3 {
+            left: 40%;
+            animation-duration: 22s;
+            animation-delay: -10s;
+            font-size: 40px;
+        }
+
+        .el-4 {
+            left: 55%;
+            animation-duration: 28s;
+            animation-delay: -2s;
+        }
+
+        .el-5 {
+            left: 70%;
+            animation-duration: 20s;
+            animation-delay: -8s;
+            font-size: 35px;
+        }
+
+        .el-6 {
+            left: 85%;
+            animation-duration: 24s;
+            animation-delay: -15s;
+        }
+
+        .el-7 {
+            left: 5%;
+            animation-duration: 30s;
+            animation-delay: -12s;
+            font-size: 28px;
+        }
+
+        .el-8 {
+            left: 15%;
+            animation-duration: 21s;
+            animation-delay: -3s;
+        }
+
+        .el-9 {
+            left: 35%;
+            animation-duration: 26s;
+            animation-delay: -18s;
+            font-size: 45px;
+        }
+
+        .el-10 {
+            left: 50%;
+            animation-duration: 19s;
+            animation-delay: -6s;
+        }
+
+        .el-11 {
+            left: 65%;
+            animation-duration: 23s;
+            animation-delay: -9s;
+            font-size: 32px;
+        }
+
+        .el-12 {
+            left: 80%;
+            animation-duration: 29s;
+            animation-delay: -20s;
+        }
+
+        .el-13 {
+            left: 90%;
+            animation-duration: 27s;
+            animation-delay: -1s;
+            font-size: 38px;
+        }
+
+        .el-14 {
+            left: 20%;
+            animation-duration: 32s;
+            animation-delay: -14s;
+        }
+
+        .el-15 {
+            left: 60%;
+            animation-duration: 24s;
+            animation-delay: -4s;
+            font-size: 26px;
+        }
+
+
+        /* --- MAIN CARD --- */
+        .main-selection-card {
+            background: #2e7d32;
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.2);
+            text-align: center;
+            max-width: 450px;
+            width: 100%;
+            padding: 50px 40px;
+            border-radius: 32px;
+            position: relative;
+            z-index: 10;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            animation: cardPop 0.8s cubic-bezier(0.2, 0.8, 0.2, 1);
+            /* Smooth Pop */
+        }
+
+        @keyframes cardPop {
+            from {
+                transform: translateY(20px) scale(0.95);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateY(0) scale(1);
+                opacity: 1;
+            }
+        }
+
+        .icon-circle {
+            width: 80px;
+            height: 80px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 30px;
+            backdrop-filter: blur(5px);
+        }
+
+        h1 {
+            font-size: 28px;
+            margin: 0 0 15px;
+            color: white;
+            font-weight: 800;
+        }
+
+        .subtitle {
+            color: rgba(255, 255, 255, 0.9);
+            margin-bottom: 40px;
+            font-size: 16px;
+            line-height: 1.6;
+        }
+
+        .lang-form {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .lang-btn {
+            width: 100%;
+            height: 60px;
+            font-size: 18px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: white;
+            color: #2e7d32;
+            border: none;
+            border-radius: 16px;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s, background 0.2s;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .lang-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+            background: #f1f8e9;
+        }
+
+        .lang-btn:active {
+            transform: scale(0.98);
+        }
+
+        .footer-text {
+            margin-top: 40px;
+            font-size: 13px;
+            color: rgba(255, 255, 255, 0.6);
+            font-weight: 500;
+        }
+
+        /* === MOBILE ONLY === */
+        @media (max-width: 768px) {
+            body {
+                padding: 15px;
+            }
+
+            .main-selection-card {
+                padding: 35px 25px;
+                border-radius: 24px;
+                transform: translateY(-5vh);
+                /* Shift slightly upwards on mobile */
+            }
+
+            .icon-circle {
+                width: 65px;
+                height: 65px;
+                margin-bottom: 20px;
+            }
+
+            .icon-circle i {
+                font-size: 28px !important;
+            }
+
+            h1 {
+                font-size: 24px;
+                margin-bottom: 10px;
+            }
+
+            .subtitle {
+                margin-bottom: 25px;
+                font-size: 14px;
+            }
+
+            .lang-btn {
+                height: 55px;
+                font-size: 17px;
+                border-radius: 14px;
+            }
+
+            .footer-text {
+                margin-top: 20px;
+                font-size: 12px;
+            }
+
+            /* Hide extra particles on mobile for performance */
+            .el-7,
+            .el-8,
+            .el-9,
+            .el-10,
+            .el-11,
+            .el-12,
+            .el-13 {
+                display: none !important;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Optimized Background (15 Items) -->
+    <div class="leaf-bg">
+        <div class="floating-el el-1"><i class="fas fa-leaf"></i></div>
+        <div class="floating-el el-2">அ</div>
+        <div class="floating-el el-3"><i class="fas fa-seedling"></i></div>
+        <div class="floating-el el-4">A</div>
+        <div class="floating-el el-5"><i class="fas fa-tree"></i></div>
+        <div class="floating-el el-6">ஆ</div>
+        <div class="floating-el el-7"><i class="fas fa-sun"></i></div>
+        <div class="floating-el el-8">Z</div>
+        <div class="floating-el el-9"><i class="fas fa-cloud-sun-rain"></i></div>
+        <div class="floating-el el-10">இ</div>
+        <div class="floating-el el-11"><i class="fas fa-wheat-awn"></i></div>
+        <div class="floating-el el-12">M</div>
+        <div class="floating-el el-13">ஈ</div>
+        <div class="floating-el el-14"><i class="fas fa-leaf"></i></div>
+        <div class="floating-el el-15">உ</div>
+    </div>
+
+    <div class="main-selection-card">
+        <div class="icon-circle">
+            <i class="fas fa-leaf" style="font-size: 36px; color: white;"></i>
+        </div>
+
+        <h1>Welcome to Agri Support</h1>
+        <p class="subtitle">
+            Please select your preferred language<br>உங்கள் மொழியைத் தேர்ந்தெடுக்கவும்
+        </p>
+
+        <form method="post" class="lang-form">
+            <button type="submit" name="lang" value="en" class="lang-btn">English</button>
+            <button type="submit" name="lang" value="ta" class="lang-btn">தமிழ்</button>
+        </form>
+
+        <p class="footer-text">
+            © {{ current_year }} Agri Support
+        </p>
+    </div>
+
+    <script src="/static/loader.js"></script>
+</body>
+
+</html>

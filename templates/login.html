@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="{{ session.get('lang', 'en') }}">
+
+<head>
+    <title>Admin Login | Agri-Support</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/static/style.css?v=3.1">
+    <link rel="stylesheet" href="/static/vendor/fontawesome/css/all.min.css">
+    
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Outfit', sans-serif;
+            background: linear-gradient(135deg, #1b5e20 0%, #4caf50 100%);
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        /* Abstract Plant Icons Background */
+        .bg-icon {
+            position: absolute;
+            color: rgba(255, 255, 255, 0.15);
+            animation: float 20s infinite ease-in-out;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        .i1 {
+            font-size: 200px;
+            top: -50px;
+            left: -40px;
+            animation-delay: 0s;
+            transform: rotate(-15deg);
+        }
+
+        .i2 {
+            font-size: 280px;
+            bottom: -60px;
+            right: -50px;
+            animation-delay: -5s;
+            transform: rotate(10deg);
+        }
+
+        .i3 {
+            font-size: 100px;
+            top: 15%;
+            right: 15%;
+            animation-delay: -8s;
+            opacity: 0.1;
+        }
+
+        .i4 {
+            font-size: 120px;
+            bottom: 20%;
+            left: 10%;
+            animation-delay: -12s;
+            opacity: 0.08;
+        }
+
+        @keyframes float {
+
+            0%,
+            100% {
+                transform: translate(0, 0) rotate(0deg);
+            }
+
+            50% {
+                transform: translate(20px, 40px) rotate(5deg);
+            }
+        }
+
+        .login-card {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 50px 40px;
+            border-radius: 24px;
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.2);
+            position: relative;
+            z-index: 10;
+            animation: slideUp 0.8s cubic-bezier(0.2, 0.8, 0.2, 1);
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(40px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .icon-box {
+            width: 80px;
+            height: 80px;
+            background: #e8f5e9;
+            color: #2e7d32;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+            margin-bottom: 25px;
+            box-shadow: 0 10px 20px rgba(46, 125, 50, 0.15);
+        }
+
+        h1 {
+            color: #1a1a1a;
+            font-size: 26px;
+            margin: 0 0 8px;
+            font-weight: 700;
+        }
+
+        p.subtitle {
+            color: #666;
+            margin: 0 0 35px;
+            font-size: 15px;
+        }
+
+        .input-group {
+            position: relative;
+            margin-bottom: 25px;
+            text-align: left;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 15px 15px 15px 50px;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            font-size: 16px;
+            font-family: inherit;
+            transition: all 0.3s;
+            box-sizing: border-box;
+            background: #fcfcfc;
+        }
+
+        .input-group input:focus {
+            border-color: #2e7d32;
+            background: #fff;
+            box-shadow: 0 0 0 4px rgba(46, 125, 50, 0.1);
+            outline: none;
+        }
+
+        /* Hide native password toggle (Edge/IE) */
+        input[type="password"]::-ms-reveal,
+        input[type="password"]::-ms-clear {
+            display: none;
+        }
+
+        /* Hide native password toggle (Edge/IE) */
+        input[type="password"]::-ms-reveal,
+        input[type="password"]::-ms-clear {
+            display: none;
+        }
+
+        .input-group i {
+            position: absolute;
+            left: 18px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #999;
+            transition: color 0.3s;
+        }
+
+        .input-group input:focus+i {
+            color: #2e7d32;
+        }
+
+        .toggle-password {
+            position: absolute;
+            right: 18px;
+            left: auto !important;
+            cursor: pointer;
+        }
+
+        .toggle-password:hover {
+            color: #333;
+        }
+
+        .btn-login {
+            width: 100%;
+            padding: 16px;
+            background: #2e7d32;
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 10px 20px rgba(46, 125, 50, 0.25);
+        }
+
+        .btn-login:hover {
+            background: #1b5e20;
+            transform: translateY(-2px);
+            box-shadow: 0 15px 25px rgba(46, 125, 50, 0.35);
+        }
+
+        .footer-link {
+            display: inline-block;
+            margin-top: 30px;
+            color: #666;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+            transition: color 0.2s;
+        }
+
+        .footer-link:hover {
+            color: #2e7d32;
+        }
+
+        .error-msg {
+            background: #ffebee;
+            color: #c62828;
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 14px;
+            margin-top: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            animation: shake 0.4s ease;
+        }
+
+        @keyframes shake {
+
+            0%,
+            100% {
+                transform: translateX(0);
+            }
+
+            25% {
+                transform: translateX(-5px);
+            }
+
+            75% {
+                transform: translateX(5px);
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <i class="fas fa-leaf bg-icon i1"></i>
+    <i class="fas fa-seedling bg-icon i2"></i>
+    <i class="fas fa-tree bg-icon i3"></i>
+    <i class="fas fa-spa bg-icon i4"></i>
+
+    <div class="login-card">
+        <div class="icon-box">
+            <i class="fas fa-user-shield"></i>
+        </div>
+
+        <h1>Admin Portal</h1>
+        <p class="subtitle">Secure Access Control</p>
+
+        <form method="post">
+            <div class="input-group">
+                <input type="password" name="password" id="password" placeholder="Enter Admin Password" required>
+                <i class="fas fa-lock"></i>
+                <i class="fas fa-eye toggle-password" onclick="togglePassword()"></i>
+            </div>
+
+            <button type="submit" class="btn-login">
+                Unlock Dashboard <i class="fas fa-arrow-right" style="margin-left: 8px;"></i>
+            </button>
+        </form>
+
+        {% if error %}
+        <div class="error-msg">
+            <i class="fas fa-exclamation-triangle"></i> {{ error }}
+        </div>
+        {% endif %}
+
+        <a href="/" class="footer-link">
+            <i class="fas fa-arrow-left"></i> Back to Home
+        </a>
+    </div>
+
+    <script>
+        function togglePassword() {
+            const passwordInput = document.getElementById('password');
+            const toggleIcon = document.querySelector('.toggle-password');
+
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                toggleIcon.classList.remove('fa-eye');
+                toggleIcon.classList.add('fa-eye-slash');
+            } else {
+                passwordInput.type = 'password';
+                toggleIcon.classList.remove('fa-eye-slash');
+                toggleIcon.classList.add('fa-eye');
+            }
+        }
+    </script>
+
+    <script src="/static/loader.js"></script>
+</body>
+
+</html>

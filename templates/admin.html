@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="{{ session.get('lang', 'en') }}">
+
+<head>
+    <title>Admin Dashboard | Agri-Support</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/static/style.css?v=3.0">
+    <link rel="stylesheet" href="/static/vendor/fontawesome/css/all.min.css">
+    
+    <script src="/static/vendor/js/chart.js"></script>
+</head>
+
+<body class="admin-layout">
+
+    <!-- SIDEBAR NAVIGATION -->
+    <aside class="admin-sidebar">
+        <div class="sidebar-logo">
+            <i class="fas fa-seedling"></i> Agri-Admin
+        </div>
+
+        <ul class="sidebar-menu">
+            <li class="sidebar-item">
+                <a href="/admin" class="sidebar-link active">
+                    <i class="fas fa-th-large"></i> {{ t.admin_nav_dashboard if t.admin_nav_dashboard else 'Dashboard'
+                    }}
+                </a>
+            </li>
+            <li class="sidebar-item">
+                <a href="/admin/chatbot" class="sidebar-link">
+                    <i class="fas fa-robot"></i> {{ t.admin_nav_chatbot if t.admin_nav_chatbot else 'Chatbot Brain' }}
+                </a>
+            </li>
+            <li class="sidebar-item">
+                <a href="/admin/guide" class="sidebar-link">
+                    <i class="fas fa-book"></i> {{ t.admin_nav_guide if t.admin_nav_guide else 'Crop Guides' }}
+                </a>
+            </li>
+            <li class="sidebar-item">
+                <a href="/admin/pests" class="sidebar-link">
+                    <i class="fas fa-bug"></i> {{ t.admin_nav_pests if t.admin_nav_pests else 'Pest Dictionary' }}
+                </a>
+            </li>
+            <li class="sidebar-item">
+                <a href="/admin/prices" class="sidebar-link">
+                    <i class="fas fa-chart-line"></i> {{ t.admin_nav_prices if t.admin_nav_prices else 'Market Prices'
+                    }}
+                </a>
+            </li>
+            <li class="sidebar-item" style="margin-top: auto;">
+                <a href="/" class="sidebar-link">
+                    <i class="fas fa-globe"></i> {{ t.admin_nav_site if t.admin_nav_site else 'View Live Site' }}
+                </a>
+            </li>
+        </ul>
+
+        <a href="/logout" class="sidebar-link" style="color: #ff6b6b; margin-top: 20px;">
+            <i class="fas fa-sign-out-alt"></i> {{ t.logout }}
+        </a>
+    </aside>
+
+    <!-- MAIN CONTENT -->
+    <main class="admin-main">
+
+        <!-- Header -->
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
+            <div>
+                <h1 style="font-size: 28px; color: #1a1a1a; margin: 0;">{{ t.admin_dashboard }}</h1>
+                <p style="color: #666; margin: 5px 0 0;">Welcome back, Admin</p>
+            </div>
+
+        </div>
+
+        <!-- Stats Grid -->
+        <div class="admin-stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon" style="color: #e91e63; background: rgba(233, 30, 99, 0.1);">
+                    <i class="fas fa-question-circle"></i>
+                </div>
+                <div class="stat-info">
+                    <h3>{{ questions|length }}</h3>
+                    <p>{{ t.admin_unanswered }}</p>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon" style="color: #2196f3; background: rgba(33, 150, 243, 0.1);">
+                    <i class="fas fa-users"></i>
+                </div>
+                <div class="stat-info">
+                    <h3>Active</h3>
+                    <p>{{ t.admin_active_users if t.admin_active_users else 'User Status' }}</p>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon" style="color: #ff9800; background: rgba(255, 152, 0, 0.1);">
+                    <i class="fas fa-database"></i>
+                </div>
+                <div class="stat-info">
+                    <h3>DB</h3>
+                    <p>{{ t.admin_db_status if t.admin_db_status else 'System Healthy' }}</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Feedback Table (Bento Item) -->
+        <div class="bento-item wide"
+            style="background: white; border: none; box-shadow: 0 10px 40px rgba(0,0,0,0.05); text-align: left;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h3 style="margin: 0; color: #1a1a1a;">
+                    <i class="fas fa-comments" style="color: var(--accent-primary); margin-right: 10px;"></i>
+                    {{ t.admin_feedback_log }}
+                </h3>
+            </div>
+
+            {% if questions %}
+            <div style="overflow-x: auto;">
+                <table style="width: 100%; border-collapse: collapse;">
+                    <thead>
+                        <tr
+                            style="background: #f9f9f9; text-transform: uppercase; font-size: 12px; letter-spacing: 1px; color: #888;">
+                            <th style="padding: 15px; text-align: left;">ID</th>
+                            <th style="padding: 15px; text-align: left;">Question</th>
+                            <th style="padding: 15px; text-align: left;">Date</th>
+                            <th style="padding: 15px; text-align: right;">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for q in questions %}
+                        <tr style="border-bottom: 1px solid #eee;">
+                            <td style="padding: 15px; color: #666;">#{{ q[0] }}</td>
+                            <td style="padding: 15px; font-weight: 500; color: #333;">{{ q[1] }}</td>
+                            <td style="padding: 15px; color: #888;">{{ q[2] }}</td>
+                            <td style="padding: 15px; text-align: right;">
+                                <form action="/delete_question/{{ q[0] }}" method="post" style="display:inline;">
+                                    <button type="submit"
+                                        style="background: none; border: none; color: #ff6b6b; cursor: pointer; padding: 8px; border-radius: 5px; transition: background 0.2s;">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div style="text-align: center; padding: 60px 20px;">
+                <i class="fas fa-check-circle" style="font-size: 48px; color: #e0e0e0; margin-bottom: 20px;"></i>
+                <p style="color: #999;">{{ t.admin_no_pending }}</p>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- User Feedback Section -->
+        <div class="bento-item wide"
+            style="background: white; border: none; box-shadow: 0 10px 40px rgba(0,0,0,0.05); text-align: left; margin-top: 30px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h3 style="margin: 0; color: #1a1a1a;">
+                    <i class="fas fa-star" style="color: #ff9800; margin-right: 10px;"></i>
+                    User Feedback
+                </h3>
+            </div>
+
+            {% if feedbacks %}
+            <div style="overflow-x: auto;">
+                <table style="width: 100%; border-collapse: collapse;">
+                    <thead>
+                        <tr
+                            style="background: #f9f9f9; text-transform: uppercase; font-size: 12px; letter-spacing: 1px; color: #888;">
+                            <th style="padding: 15px; text-align: left;">Date</th>
+                            <th style="padding: 15px; text-align: left;">Name</th>
+                            <th style="padding: 15px; text-align: left;">Category</th>
+                            <th style="padding: 15px; text-align: center;">Rating</th>
+                            <th style="padding: 15px; text-align: left;">Message</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for f in feedbacks %}
+                        <tr style="border-bottom: 1px solid #eee;">
+                            <td style="padding: 15px; color: #888; font-size: 12px;">{{ f[5] }}</td>
+                            <td style="padding: 15px; font-weight: 500; color: #333;">{{ f[1] }}</td>
+                            <td style="padding: 15px; color: #2E7D32;">
+                                <span
+                                    style="background: #e8f5e9; padding: 4px 10px; border-radius: 20px; font-size: 11px;">
+                                    {{ f[2] }}
+                                </span>
+                            </td>
+                            <td style="padding: 15px; text-align: center;">
+                                <div style="color: #ff9800; font-size: 12px;">
+                                    {% for i in range(f[3]) %}
+                                    <i class="fas fa-star"></i>
+                                    {% endfor %}
+                                </div>
+                            </td>
+                            <td style="padding: 15px; color: #666; font-size: 13px; max-width: 300px;">{{ f[4] }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div style="text-align: center; padding: 40px 20px;">
+                <p style="color: #999;">No feedback submitted yet.</p>
+            </div>
+            {% endif %}
+        </div>
+
+        <div style="text-align: center; margin-top: 50px; color: #aaa; font-size: 13px;">
+            <p>&copy; {{ current_year }} Agri-Admin System</p>
+        </div>
+    </main>
+
+    <script src="/static/loader.js"></script>
+</body>
+
+</html>

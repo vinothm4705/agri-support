@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="{{ session.get('lang', 'en') }}">
+
+<head>
+    <title>{{ t.diagnose_title }}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/static/style.css?v=2.0">
+    <link rel="stylesheet" href="/static/vendor/fontawesome/css/all.min.css">
+    <link rel="manifest" href="/static/manifest.json">
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/static/service-worker.js')
+                    .then(reg => console.log('SW registered!', reg.scope))
+                    .catch(err => console.log('SW failed:', err));
+            });
+        }
+    </script>
+
+    <style>
+        body {
+            font-family: 'Outfit', sans-serif;
+            background: #f8fcf8;
+        }
+
+        .diagnose-wrapper {
+            max-width: 800px;
+            margin: 40px auto;
+            padding: 20px;
+        }
+
+        .upload-card {
+            background: white;
+            border-radius: 24px;
+            padding: 40px;
+            text-align: center;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.05);
+            border: 2px dashed rgba(46, 125, 50, 0.2);
+            transition: all 0.3s;
+        }
+
+        .upload-card:hover {
+            border-color: var(--accent-primary);
+            background: #f1f8e9;
+        }
+
+        .upload-icon {
+            font-size: 60px;
+            color: var(--accent-primary);
+            margin-bottom: 20px;
+            opacity: 0.8;
+        }
+
+        .upload-btn {
+            background: linear-gradient(135deg, #2E7D32, #43A047);
+            color: white;
+            padding: 15px 35px;
+            border-radius: 50px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            transition: transform 0.2s, box-shadow 0.2s;
+            box-shadow: 0 8px 20px rgba(46, 125, 50, 0.3);
+        }
+
+        .upload-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 25px rgba(46, 125, 50, 0.4);
+        }
+
+        .file-preview {
+            margin-top: 20px;
+            display: none;
+        }
+
+        .file-preview img {
+            max-width: 100%;
+            height: auto;
+            max-height: 300px;
+            border-radius: 12px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Report Section */
+        .report-card {
+            background: white;
+            border-radius: 24px;
+            padding: 40px;
+            margin-top: 30px;
+            box-shadow: 0 15px 50px rgba(0, 0, 0, 0.08);
+            border-left: 6px solid var(--accent-primary);
+            animation: slideUp 0.6s ease;
+        }
+
+        .report-header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 25px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 15px;
+        }
+
+        .report-header h2 {
+            margin: 0;
+            color: #1a1a1a;
+            font-size: 22px;
+        }
+
+        .report-section {
+            margin-bottom: 20px;
+        }
+
+        .report-section h3 {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-weight: 700;
+        }
+
+        .report-section p {
+            font-size: 16px;
+            color: #222;
+            line-height: 1.6;
+            margin: 0;
+        }
+
+        .report-section.problem p {
+            color: #d32f2f;
+            font-weight: 600;
+            font-size: 18px;
+        }
+
+        .report-section.solution p {
+            color: #2E7D32;
+        }
+
+        .loading-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(255, 255, 255, 0.9);
+            z-index: 1000;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .loader {
+            width: 50px;
+            height: 50px;
+            border: 4px solid #eee;
+            border-top: 4px solid var(--accent-primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Language Switcher -->
+    <div class="lang-float">
+        <form method="post" action="/set_language">
+            <select name="lang" onchange="this.form.submit()">
+                <option value="en" {% if session.lang=="en" %}selected{% endif %}>English</option>
+                <option value="ta" {% if session.lang=="ta" %}selected{% endif %}>தமிழ்</option>
+            </select>
+        </form>
+    </div>
+
+    <!-- Header -->
+    <div class="page-header-card">
+        <i class="fas fa-user-md"></i>
+        <h1>{{ t.diagnose_title }}</h1>
+        <p>{{ t.diagnose_subtitle }}</p>
+
+        <nav class="header-nav">
+            <a href="/" class="nav-link {{ 'active' if request.path == '/' }}">{{ t.home }}</a>
+            <div class="dropdown">
+                <button
+                    class="nav-link dropdown-toggle {{ 'active' if request.path in ['/chatbot', '/weather', '/guide', '/crop-prices', '/pests', '/calculator'] }}"
+                    style="background:none; border:none; display:flex; align-items:center;">
+                    {{ t.features }}
+                </button>
+                <div class="dropdown-menu">
+                    <a href="/chatbot" class="{{ 'active' if request.path == '/chatbot' }}">{{ t.chatbot }}</a>
+                    <a href="/weather" class="{{ 'active' if request.path == '/weather' }}">{{ t.weather }}</a>
+                    <a href="/guide" class="{{ 'active' if request.path == '/guide' }}">{{ t.guide }}</a>
+                    <a href="/crop-prices" class="{{ 'active' if request.path == '/crop-prices' }}">{{ t.prices }}</a>
+                    <a href="/pests" class="{{ 'active' if request.path == '/pests' }}">{{ t.pests }}</a>
+                    <a href="/calculator" class="{{ 'active' if request.path == '/calculator' }}">{{ t.calculator }}</a>
+                </div>
+            </div>
+            <a href="/feedback" class="nav-link {{ 'active' if request.path == '/feedback' }}">{{ t.feedback_link }}</a>
+            <a href="/about" class="nav-link {{ 'active' if request.path == '/about' }}">{{ t.about }}</a>
+        </nav>
+    </div>
+
+    <div class="diagnose-wrapper">
+
+        <form method="post" enctype="multipart/form-data" id="diagnoseForm">
+            <div class="upload-card" onclick="document.getElementById('fileInput').click()">
+                <i class="fas fa-cloud-upload-alt upload-icon"></i>
+                <h3>{{ t.diagnose_upload_label }}</h3>
+                <input type="file" name="image" id="fileInput" accept="image/*" hidden onchange="showPreview(event)">
+                <div class="file-preview" id="previewContainer">
+                    <img id="previewImg" src="">
+                </div>
+                <br>
+                <button type="button" class="upload-btn" onclick="document.getElementById('fileInput').click()">
+                    <i class="fas fa-camera"></i> {{ t.diagnose_scan_btn if t.diagnose_scan_btn else 'Select Photo' }}
+                </button>
+            </div>
+
+            <div style="text-align: center; margin-top: 20px;">
+                <button type="submit" class="btn-premium" id="analyzeBtn" style="display: none;">
+                    <i class="fas fa-stethoscope"></i> {{ t.diagnose_analyze_btn }}
+                </button>
+            </div>
+        </form>
+
+        <!-- Premium Bio-Scan Loader -->
+        <div class="diagnose-loader" id="diagnoseLoader">
+            <div class="bio-scene">
+                <div class="bio-ring"></div>
+                <div class="bio-scanner-line"></div>
+                <i class="fas fa-leaf bio-leaf"></i>
+                <div class="bio-particles">
+                    <i class="fas fa-plus"></i>
+                    <i class="fas fa-plus"></i>
+                    <i class="fas fa-plus"></i>
+                </div>
+            </div>
+            <h3 style="font-size: 18px; color: var(--accent-primary); font-weight: 600; margin-top: 10px;">
+                {{ t.diagnose_loading }}
+            </h3>
+        </div>
+
+        <!-- Result Report -->
+        {% if result %}
+        <div class="report-card" id="resultReport">
+            <div class="report-header">
+                <i class="fas fa-file-medical-alt" style="font-size: 30px; color: var(--accent-primary);"></i>
+                <h2>{{ t.diagnose_report_title }}</h2>
+            </div>
+
+            {% if result.image_data %}
+            <div style="text-align: center; margin-bottom: 20px;">
+                <img src="data:image/jpeg;base64,{{ result.image_data }}"
+                    style="max-height: 200px; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.1);">
+            </div>
+            {% endif %}
+
+            <div class="report-section problem">
+                <h3><i class="fas fa-exclamation-circle"></i> {{ t.diagnose_problem }}</h3>
+                <p>{{ result.problem }}</p>
+            </div>
+
+            <div class="report-section symptoms">
+                <h3><i class="fas fa-search-plus"></i> {{ t.diagnose_symptoms }}</h3>
+                <p>{{ result.symptoms }}</p>
+            </div>
+
+            <div class="report-section solution">
+                <h3><i class="fas fa-pills"></i> {{ t.diagnose_solution }}</h3>
+                <p>{{ result.solution }}</p>
+            </div>
+
+            <div style="text-align: center; margin-top: 25px;">
+                <button onclick="window.location.href='/diagnose'" class="upload-btn"
+                    style="padding: 10px 25px; font-size: 14px;">
+                    <i class="fas fa-redo"></i> {{ t.diagnose_scan_btn if t.diagnose_scan_btn else 'Scan Another' }}
+                </button>
+            </div>
+        </div>
+
+        <script>
+            // Auto-scroll to result on load
+            document.addEventListener("DOMContentLoaded", function () {
+                const report = document.getElementById("resultReport");
+                if (report) {
+                    report.scrollIntoView({ behavior: "smooth", block: "center" });
+                }
+            });
+        </script>
+        {% endif %}
+
+    </div>
+
+    <script>
+        function showPreview(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    document.getElementById('previewImg').src = e.target.result;
+                    document.getElementById('previewContainer').style.display = 'block';
+                    document.getElementById('analyzeBtn').style.display = 'inline-flex';
+                }
+                reader.readAsDataURL(file);
+            }
+        }
+
+        document.getElementById('diagnoseForm').onsubmit = function () {
+            document.getElementById('diagnoseLoader').classList.add('active');
+
+            // Hide nav to focus on loader
+            const nav = document.querySelector('.header-nav');
+            const lang = document.querySelector('.lang-float');
+            if (nav) nav.style.opacity = '0';
+            if (lang) lang.style.opacity = '0';
+        };
+    </script>
+
+    <script src="/static/loader.js"></script>
+</body>
+
+</html>

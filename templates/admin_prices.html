@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="{{ session.get('lang', 'en') }}">
+
+<head>
+    <title>Manage Prices | Agri-Admin</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/static/style.css?v=3.0">
+    <link rel="stylesheet" href="/static/vendor/fontawesome/css/all.min.css">
+    
+</head>
+
+<body class="admin-layout">
+
+    <!-- SIDEBAR NAVIGATION -->
+    <aside class="admin-sidebar">
+        <div class="sidebar-logo">
+            <i class="fas fa-seedling"></i> Agri-Admin
+        </div>
+
+        <ul class="sidebar-menu">
+            <li class="sidebar-item">
+                <a href="/admin" class="sidebar-link">
+                    <i class="fas fa-th-large"></i> {{ t.admin_nav_dashboard if t.admin_nav_dashboard else 'Dashboard'
+                    }}
+                </a>
+            </li>
+            <li class="sidebar-item">
+                <a href="/admin/chatbot" class="sidebar-link">
+                    <i class="fas fa-robot"></i> {{ t.admin_nav_chatbot if t.admin_nav_chatbot else 'Chatbot Brain' }}
+                </a>
+            </li>
+            <li class="sidebar-item">
+                <a href="/admin/guide" class="sidebar-link">
+                    <i class="fas fa-book"></i> {{ t.admin_nav_guide if t.admin_nav_guide else 'Crop Guides' }}
+                </a>
+            </li>
+            <li class="sidebar-item">
+                <a href="/admin/pests" class="sidebar-link">
+                    <i class="fas fa-bug"></i> {{ t.admin_nav_pests if t.admin_nav_pests else 'Pest Dictionary' }}
+                </a>
+            </li>
+            <li class="sidebar-item">
+                <a href="/admin/prices" class="sidebar-link active">
+                    <i class="fas fa-chart-line"></i> {{ t.admin_nav_prices if t.admin_nav_prices else 'Market Prices'
+                    }}
+                </a>
+            </li>
+            <li class="sidebar-item" style="margin-top: auto;">
+                <a href="/" class="sidebar-link">
+                    <i class="fas fa-globe"></i> {{ t.admin_nav_site if t.admin_nav_site else 'View Live Site' }}
+                </a>
+            </li>
+        </ul>
+
+        <a href="/logout" class="sidebar-link" style="color: #ff6b6b; margin-top: 20px;">
+            <i class="fas fa-sign-out-alt"></i> {{ t.logout }}
+        </a>
+    </aside>
+
+    <!-- MAIN CONTENT -->
+    <main class="admin-main">
+
+        <!-- Header -->
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
+            <div>
+                <h1 style="font-size: 28px; color: #1a1a1a; margin: 0;">{{ t.admin_nav_prices }}</h1>
+                <p style="color: #666; margin: 5px 0 0;">Update daily market rates for crops.</p>
+            </div>
+        </div>
+
+        <div class="bento-grid" style="grid-template-columns: 1fr 2fr;">
+
+            <!-- ADD PRICE FORM -->
+            <div class="bento-item" style="background: white; border: none; box-shadow: 0 10px 40px rgba(0,0,0,0.05);">
+                <h3><i class="fas fa-plus-circle" style="color: var(--accent-primary);"></i> Update Price</h3>
+                <form method="post" style="margin-top: 20px;">
+
+                    <div style="margin-bottom: 15px;">
+                        <label
+                            style="display: block; margin-bottom: 8px; font-weight: 500; font-size: 14px; color: #555;">District</label>
+                        <select name="district" class="admin-input"
+                            style="background: #f4f6f8; color: #333; border-color: #ddd;" required>
+                            <option value="">-- Select District --</option>
+                            <option value="Thanjavur">Thanjavur</option>
+                            <option value="Coimbatore">Coimbatore</option>
+                            <option value="Madurai">Madurai</option>
+                            <option value="Ariyalur">Ariyalur</option>
+                            <option value="Karur">Karur</option>
+                            <option value="Pudukottai">Pudukottai</option>
+                            <option value="Ramanathapuram">Ramanathapuram</option>
+                            <option value="Thiruchirapalli">Thiruchirapalli</option>
+                            <option value="Thirunelveli">Thirunelveli</option>
+                            <option value="Thiruvallur">Thiruvallur</option>
+                            <option value="Virudhunagar">Virudhunagar</option>
+                        </select>
+                    </div>
+
+                    <div style="margin-bottom: 15px;">
+                        <label
+                            style="display: block; margin-bottom: 8px; font-weight: 500; font-size: 14px; color: #555;">Crop</label>
+                        <select name="crop" class="admin-input"
+                            style="background: #f4f6f8; color: #333; border-color: #ddd;" required>
+                            <option value="">-- Select Crop --</option>
+                            <option value="Paddy">Paddy</option>
+                            <option value="Groundnut">Groundnut</option>
+                            <option value="Cotton">Cotton</option>
+                            <option value="Coconut">Coconut</option>
+                            <option value="Banana">Banana</option>
+                            <option value="Sugarcane">Sugarcane</option>
+                        </select>
+                    </div>
+
+                    <div style="margin-bottom: 15px;">
+                        <label
+                            style="display: block; margin-bottom: 8px; font-weight: 500; font-size: 14px; color: #555;">Price
+                            (₹ per quintal)</label>
+                        <input type="number" name="price" class="admin-input"
+                            style="background: #f4f6f8; color: #333; border-color: #ddd;" placeholder="e.g. 2500"
+                            required>
+                    </div>
+
+                    <div style="margin-bottom: 20px;">
+                        <label
+                            style="display: block; margin-bottom: 8px; font-weight: 500; font-size: 14px; color: #555;">Source</label>
+                        <input type="text" name="source" class="admin-input"
+                            style="background: #f4f6f8; color: #333; border-color: #ddd;" placeholder="e.g. Agmarknet">
+                    </div>
+
+                    <button type="submit" class="btn-primary"
+                        style="width: 100%; border-radius: 12px; font-size: 16px;">
+                        Update Rate <i class="fas fa-check"></i>
+                    </button>
+                </form>
+            </div>
+
+            <!-- PRICE HISTORY TABLE -->
+            <div class="bento-item wide"
+                style="background: white; border: none; box-shadow: 0 10px 40px rgba(0,0,0,0.05);">
+                <h3><i class="fas fa-history" style="color: #4fc3f7;"></i> Recent Updates</h3>
+
+                {% if prices %}
+                <div style="overflow-x: auto; margin-top: 20px;">
+                    <table style="width: 100%; border-collapse: collapse;">
+                        <thead>
+                            <tr
+                                style="background: #f9f9f9; text-transform: uppercase; font-size: 12px; letter-spacing: 1px; color: #888;">
+                                <th style="padding: 15px; text-align: left;">District</th>
+                                <th style="padding: 15px; text-align: left;">Crop</th>
+                                <th style="padding: 15px; text-align: left;">Price</th>
+                                <th style="padding: 15px; text-align: left;">Date</th>
+                                <th style="padding: 15px; text-align: right;">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for p in prices %}
+                            <tr style="border-bottom: 1px solid #eee;">
+                                <td style="padding: 15px; font-weight: 500;">{{ p[1] }}</td>
+                                <td style="padding: 15px;">{{ p[2] }}</td>
+                                <td style="padding: 15px; color: var(--accent-primary); font-weight: 700;">₹ {{ p[3] }}
+                                </td>
+                                <td style="padding: 15px; color: #888; font-size: 13px;">{{ p[6] }}</td>
+                                <td style="padding: 15px; text-align: right;">
+                                    <form method="post" action="/delete_price/{{ p[0] }}"
+                                        onsubmit="return confirm('Delete this price?');" style="display:inline;">
+                                        <button type="submit"
+                                            style="background: none; border: none; color: #ff6b6b; cursor: pointer; padding: 5px;">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div style="text-align: center; padding: 60px 20px; color: #999;">
+                    <i class="fas fa-chart-bar" style="font-size: 40px; color: #eee; margin-bottom: 15px;"></i>
+                    <p>No recent price updates found.</p>
+                </div>
+                {% endif %}
+            </div>
+
+        </div>
+
+        </div>
+
+        <div style="text-align: center; margin-top: 50px; color: #aaa; font-size: 13px;">
+            <p>&copy; {{ current_year }} Agri-Admin System</p>
+        </div>
+    </main>
+
+    <script src="/static/loader.js"></script>
+</body>
+
+</html>
