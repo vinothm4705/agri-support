@@ -196,18 +196,4 @@ Access the admin panel at `/login` to:
 - Manage crop cultivation guides
 - Add pest & disease records
 
----
-
-## License
-
-This project is developed for academic purposes.
-
----
-
-## Author
-
-Developed as an academic project for supporting beginner farmers in Tamil Nadu, India.
-
----
-
 > **Note:** This project requires valid API keys for Google Gemini and OpenWeatherMap to function fully.
